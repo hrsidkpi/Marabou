@@ -20,6 +20,11 @@
 #include "NetworkLevelReasoner.h"
 #include "Tightening.h"
 
+#include "ap_global1.h"
+
+#include "box.h"
+
+
 class MockForNetworkLevelReasoner
 {
 public:
@@ -122,6 +127,8 @@ public:
         input[1] = 0;
 
         TS_ASSERT_THROWS_NOTHING( nlr.evaluate( input, output ) );
+
+        TS_ASSERT_EQUALS(2, 4);
 
         TS_ASSERT( FloatUtils::areEqual( output[0], 1 ) );
         TS_ASSERT( FloatUtils::areEqual( output[1], 4 ) );

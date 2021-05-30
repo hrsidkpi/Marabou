@@ -29,6 +29,7 @@
 #include "Options.h"
 #include "ReluConstraint.h"
 #include "SignConstraint.h"
+#include "ai/AbstractInterpretor.h"
 #include <cstring>
 
 namespace NLR {
@@ -37,12 +38,52 @@ NetworkLevelReasoner::NetworkLevelReasoner()
     : _tableau( NULL )
     , _deepPolyAnalysis( nullptr )
 {
+    _apronManager = box_manager_alloc();
 }
 
 NetworkLevelReasoner::~NetworkLevelReasoner()
 {
     freeMemoryIfNeeded();
 }
+
+
+
+void NetworkLevelReasoner::performAbstractInterpretation() {
+    AbstractInterpretor *ai = new AbstractInterpretor(); 
+
+    unsigned sizes[_layerIndexToLayer.size()];
+    for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
+        sizes[i] = _layerIndexToLayer[i]->getSize();
+    }
+
+    double ***weights = new double**[_layerIndexToLayer.size()-1];
+    for(unsigned i = 0; i < _layerIndexToLayer.size()-1; i++) {
+        weights[i] = new double*[sizes[i]];
+        for(unsigned j = 0; j < sizes[i]; j++) {
+            weights[i][j] = _layerIndexToLayer[i+1]->getWeights(j);
+        }
+    }
+
+    double **biases = new double*[_layerIndexToLayer.size()-1];
+    for(unsigned i = 1; i < _layerIndexToLayer.size(); i++) {
+        biases[i-1] = _layerIndexToLayer[i]->getBiases();
+    }
+
+    double **initialBounds = new double*[sizes[0]];
+    for(unsigned i = 0; i < sizes[0]; i++){
+        initialBounds[i] = new double[2];
+        initialBounds[i][0] = _layerIndexToLayer[0]->getLb(i);
+        initialBounds[i][1] = _layerIndexToLayer[0]->getUb(i);
+    }
+
+    ai->init(_layerIndexToLayer.size(), sizes, weights, biases);
+    ai->setInitialBounds(initialBounds);
+    ai->propagate();
+    ai->printCurrentAv();
+}
+
+
+
 
 bool NetworkLevelReasoner::functionTypeSupported( PiecewiseLinearFunctionType type )
 {

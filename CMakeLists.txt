@@ -38,6 +38,7 @@ set(REGRESS_DIR "${PROJECT_SOURCE_DIR}/regress")
 set(ENGINE_DIR "${SRC_DIR}/engine")
 set(PYBIND11_DIR "${TOOLS_DIR}/pybind11-2.3.0")
 set(BOOST_DIR "${TOOLS_DIR}/boost_1_68_0")
+set(APRON_DIR "${TOOLS_DIR}/apron")
 set(OPENBLAS_DEFAULT_DIR "${TOOLS_DIR}/OpenBLAS-0.3.9")
 if (NOT OPENBLAS_DIR)
     set(OPENBLAS_DIR ${OPENBLAS_DEFAULT_DIR})
@@ -241,6 +242,33 @@ if (${ENABLE_OPENBLAS})
     target_include_directories(${OPENBLAS_LIB} INTERFACE ${OPENBLAS_DIR}/installed/include)
 endif()
 endif()
+
+
+# Apron
+set(APRON_ROOT "${APRON_DIR}/installed")
+
+if(NOT EXISTS "${APRON_DIR}")
+  execute_process(COMMAND ${TOOLS_DIR}/download_apron.sh)
+endif()
+
+set(APRON_LIB boxD_debug)
+set(APRON_LIB_2 apron_debug)
+
+add_library(${APRON_LIB} SHARED IMPORTED)
+set_target_properties(${APRON_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libboxD_debug.a)
+list(APPEND LIBS ${APRON_LIB})
+target_include_directories(${APRON_LIB} INTERFACE ${APRON_DIR}/installed/include)
+
+add_library(${APRON_LIB_2} SHARED IMPORTED)
+set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libapron_debug.a)
+list(APPEND LIBS ${APRON_LIB_2})
+target_include_directories(${APRON_LIB_2} INTERFACE ${APRON_DIR}/installed/include)
+
+
+list(APPEND LIBS gmp)
+list(APPEND LIBS mpfr)
+
+
 
 # pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)

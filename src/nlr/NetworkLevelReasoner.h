@@ -27,6 +27,10 @@
 #include "Tightening.h"
 #include "Vector.h"
 
+#include "ap_global1.h"
+
+#include "box.h"
+
 #include <memory>
 
 namespace NLR {
@@ -120,6 +124,8 @@ public:
     void MILPPropagation();
     void iterativePropagation();
 
+    void performAbstractInterpretation();
+
     void receiveTighterBound( Tightening tightening );
     void getConstraintTightenings( List<Tightening> &tightenings );
 
@@ -179,9 +185,18 @@ private:
     Map<unsigned, Layer *> _layerIndexToLayer;
     const ITableau *_tableau;
 
+    ap_manager_t *_apronManager;
+    char *_apronVariables;
+
+    char **_variableNames;
+    unsigned _totalNumberOfVariables;
+
+    ap_environment_t *_apronEnvironment;
+
+
     // Tightenings discovered by the various layers
     List<Tightening> _boundTightenings;
-
+    
 
     std::unique_ptr<DeepPolyAnalysis> _deepPolyAnalysis;
 
