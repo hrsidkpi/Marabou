@@ -15,6 +15,10 @@ class AbstractValue {
 
 public:
 
+    ~AbstractValue() {
+        delete _ap_value;
+        delete _manager;
+    }
 
     ap_abstract1_t *_ap_value;
     unsigned _layerIndex;

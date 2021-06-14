@@ -15,7 +15,8 @@ class AbstractInterpretor {
 public:
 
     ~AbstractInterpretor() {
-        //free(_env);
+        free(_env);
+        free(_currentAV);
     }
 
     void init(unsigned numberOfLayers, unsigned *layerSizes, double ***weights, double **bias) {

@@ -99,30 +99,11 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
     _currentAI->init(layerCount, sizes, weights, biases);
     _currentAI->setInitialBounds(initialBounds);
 
-    /**
-    //Free memory
-    std::cout << "Deleting weights...\n";
-    for(unsigned i = 0; i < layerCount-1; i++) {
-        for(unsigned j = 0; j < sizes[i]; j++) {
-            delete[] weights[i][j];
-        }
-        delete[] weights[i];
-    }
-    delete[] weights;
-
-    std::cout << "Deleting biases...\n";
-    for(unsigned i = 0; i < layerCount-1; i++) {
-        delete[] biases[i];
-    }
-    delete[] biases;
-
     for(unsigned i = 0; i < sizes[0]; i++){
         delete[] initialBounds[i];
     }
     delete[] initialBounds;
-    
-    delete[] sizes;
-    **/
+
 
     std::cout << "\n\n Done init of abstract interpretation\n========================================\n\n\n\n\n\n" << std::endl;
 }

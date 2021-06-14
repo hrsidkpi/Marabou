@@ -123,6 +123,12 @@ public:
           x_0_1    x_1_1    x_2_1
         */
 
+       /**
+        * [0,3]      [-6,3]      [0, 3]      [0, 14]      [0,14]
+        *        =>          =>          =>           =>
+        * [0,2]      [0,11]      [0,11]      [-3,11]      [0,11]
+        **/
+
         // Create the layers
         nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
 
@@ -195,26 +201,29 @@ public:
         (void) val;
         
         std::cout << "Result AV address: " << val << std::endl;
-        /*
 
         ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnviroment()->_manager, val, const_cast<char *>("x_2_a_0"));
-        ap_interval_t *expectedBounds1 = ap_interval_alloc();
-        ap_interval_set_double(expectedBounds1, 0, 14);
-        int cmp1 = ap_interval_cmp(bounds1, expectedBounds1);
+        double lb1 = bounds1->inf->val.dbl;
+        double ub1 = bounds1->sup->val.dbl;
 
-        std::cout << "Neuron 1 result: " << cmp1 << std::endl;
-        TS_ASSERT_EQUALS(cmp1, 0);
+        TS_ASSERT_EQUALS(lb1, 0);
+        TS_ASSERT_EQUALS(ub1, 14);
+
+        if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
+        if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
+
 
 
         ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnviroment()->_manager, val, const_cast<char *>("x_2_a_1"));
-        ap_interval_t *expectedBounds2 = ap_interval_alloc();
-        ap_interval_set_double(expectedBounds2, 0, 11);
-        int cmp2 = ap_interval_cmp(bounds2, expectedBounds2);
+        double lb2 = bounds2->inf->val.dbl;
+        double ub2 = bounds2->sup->val.dbl;
 
-        std::cout << "Neuron 1 result: " << cmp2 << std::endl;
-        TS_ASSERT_EQUALS(cmp2, 0);
+        TS_ASSERT_EQUALS(lb2, 0);
+        TS_ASSERT_EQUALS(ub2, 11);
 
-        **/
+        if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
+        if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
+
         std::cout << "\n\nDone testing abstract interpretation result\n==================================\n\n\n\n\n" << std::endl;
     }
 

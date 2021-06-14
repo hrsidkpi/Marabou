@@ -11,6 +11,30 @@ class AbstractEnviroment {
 
 public:
 
+
+    ~AbstractEnviroment() {
+
+        std::cout << "Deleting weights...\n";
+        for(unsigned i = 0; i < _numberOfLayers-1; i++) {
+            for(unsigned j = 0; j < _layerSizes[i]; j++) {
+                delete[] _weights[i][j];
+            }
+            delete[] _weights[i];
+        }
+        delete[] _weights;
+
+        std::cout << "Deleting biases...\n";
+        for(unsigned i = 0; i < _numberOfLayers-1; i++) {
+            delete[] _bias[i];
+        }
+        delete[] _bias;
+
+        delete[] _layerSizes;
+        delete _manager;
+        delete _env;
+        
+    }
+
     unsigned _numberOfLayers;
     unsigned *_layerSizes;
 
