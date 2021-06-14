@@ -116,10 +116,111 @@ public:
         nlr.setNeuronVariable( NLR::NeuronIndex( 5, 1 ), 13 );
     }
 
+    void populateNetworkSmall( NLR::NetworkLevelReasoner &nlr ) 
+    {
+        /*
+          x_0_0    x_1_0    x_2_0
+          x_0_1    x_1_1    x_2_1
+        */
+
+        // Create the layers
+        nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
+
+        nlr.addLayer( 1, NLR::Layer::WEIGHTED_SUM, 2 );
+        nlr.addLayer( 2, NLR::Layer::WEIGHTED_SUM, 2 );
+
+        nlr.addLayerDependency(0,1);
+        nlr.addLayerDependency(1,2);
+
+        // Set the weights and biases for the weighted sum layers
+        //layer 0 to 1
+        nlr.setWeight( 0, 0, 1, 0, 1 );
+        nlr.setWeight( 0, 0, 1, 1, 3 );
+        nlr.setWeight( 0, 1, 1, 0, -3 );
+        nlr.setWeight( 0, 1, 1, 1, 1 );
+        //layer 1 to 2
+        nlr.setWeight( 1, 0, 2, 0, 1 );
+        nlr.setWeight( 1, 0, 2, 1, -1 );
+        nlr.setWeight( 1, 1, 2, 0, 1 );
+        nlr.setWeight( 1, 1, 2, 1, 1 );
+
+        // Variable indexing
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 0 ), 0 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 1 ), 1 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 0 ), 2 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 1 ), 3 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 0 ), 4 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 1 ), 5 );
+    }
+
+
+    void test_perform_abstract_interpretation() 
+    {
+        NLR::NetworkLevelReasoner nlr;
+        populateNetworkSmall(nlr);
+
+
+        MockTableau tableau;
+
+        // Initialize the bounds
+        tableau.setLowerBound( 0, 0 );
+        tableau.setUpperBound( 0, 3 );
+        tableau.setLowerBound( 1, 0 );
+        tableau.setUpperBound( 1, 2 );
+
+        double large = 1000;
+        tableau.setLowerBound( 2, -large ); tableau.setUpperBound( 2, large );
+        tableau.setLowerBound( 3, -large ); tableau.setUpperBound( 3, large );
+        tableau.setLowerBound( 4, -large ); tableau.setUpperBound( 4, large );
+        tableau.setLowerBound( 5, -large ); tableau.setUpperBound( 5, large );
+
+        nlr.setTableau( &tableau );
+
+        // Initialize
+        TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+
+        // Perform the tightening pass
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation() );
+        TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+
+        std::cout << "\n==================================\nTesting abstract interpretation result\n\n\n\n" << std::endl;
+
+        NLR::AbstractInterpretor *ai = nlr.getCurrentAI();
+        std::cout << "Result AI address: " << ai << std::endl;
+        std::cout << "Result AI->AV address: " << ai->getCurrentAV() << std::endl;
+        
+        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
+        (void) val;
+        
+        std::cout << "Result AV address: " << val << std::endl;
+        /*
+
+        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnviroment()->_manager, val, const_cast<char *>("x_2_a_0"));
+        ap_interval_t *expectedBounds1 = ap_interval_alloc();
+        ap_interval_set_double(expectedBounds1, 0, 14);
+        int cmp1 = ap_interval_cmp(bounds1, expectedBounds1);
+
+        std::cout << "Neuron 1 result: " << cmp1 << std::endl;
+        TS_ASSERT_EQUALS(cmp1, 0);
+
+
+        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnviroment()->_manager, val, const_cast<char *>("x_2_a_1"));
+        ap_interval_t *expectedBounds2 = ap_interval_alloc();
+        ap_interval_set_double(expectedBounds2, 0, 11);
+        int cmp2 = ap_interval_cmp(bounds2, expectedBounds2);
+
+        std::cout << "Neuron 1 result: " << cmp2 << std::endl;
+        TS_ASSERT_EQUALS(cmp2, 0);
+
+        **/
+        std::cout << "\n\nDone testing abstract interpretation result\n==================================\n\n\n\n\n" << std::endl;
+    }
+
     void test_evaluate_relus()
     {
         NLR::NetworkLevelReasoner nlr;
-
         populateNetwork( nlr );
 
         double input[2];

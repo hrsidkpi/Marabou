@@ -26,9 +26,10 @@ public:
         _weights = weights;
         _bias = bias;
 
+        std::cout << "Allocating abstract enviroment " << std::endl;
         allocate();
+        std::cout << "Done allocating abstract enviroment " << std::endl;
     }
-
 
 private:
 
@@ -61,7 +62,10 @@ private:
                 }
             }
         }
+
+        
         _env = ap_environment_alloc(NULL, 0, (void **)&variableNames[0], totalNumberOfVariables );
+        
     }
 
 };

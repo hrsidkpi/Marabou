@@ -27,7 +27,7 @@
 #include "Tightening.h"
 #include "Vector.h"
 
-#include "ap_global1.h"
+#include "ai/AbstractInterpretor.h"
 
 #include "box.h"
 
@@ -47,6 +47,8 @@ public:
     ~NetworkLevelReasoner();
 
     static bool functionTypeSupported( PiecewiseLinearFunctionType type );
+
+    AbstractInterpretor *getCurrentAI();
 
     /*
       Populate the NLR by specifying the network's topology.
@@ -125,6 +127,7 @@ public:
     void iterativePropagation();
 
     void performAbstractInterpretation();
+    void startAbstractInterpretation();
 
     void receiveTighterBound( Tightening tightening );
     void getConstraintTightenings( List<Tightening> &tightenings );
@@ -191,7 +194,7 @@ private:
     char **_variableNames;
     unsigned _totalNumberOfVariables;
 
-    ap_environment_t *_apronEnvironment;
+    AbstractInterpretor *_currentAI;
 
 
     // Tightenings discovered by the various layers

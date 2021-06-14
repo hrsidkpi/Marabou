@@ -13,6 +13,7 @@
 
  **/
 
+
 #include "AbsoluteValueConstraint.h"
 #include "Debug.h"
 #include "FloatUtils.h"
@@ -29,7 +30,6 @@
 #include "Options.h"
 #include "ReluConstraint.h"
 #include "SignConstraint.h"
-#include "ai/AbstractInterpretor.h"
 #include <cstring>
 
 namespace NLR {
@@ -38,7 +38,6 @@ NetworkLevelReasoner::NetworkLevelReasoner()
     : _tableau( NULL )
     , _deepPolyAnalysis( nullptr )
 {
-    _apronManager = box_manager_alloc();
 }
 
 NetworkLevelReasoner::~NetworkLevelReasoner()
@@ -49,24 +48,44 @@ NetworkLevelReasoner::~NetworkLevelReasoner()
 
 
 void NetworkLevelReasoner::performAbstractInterpretation() {
-    AbstractInterpretor *ai = new AbstractInterpretor(); 
+    std::cout << "\n\n\n\n\n\n\n=======================\nstarting abstract interpretation\n\n" << std::endl;
+    _currentAI->propagate();
+    std::cout << "\n\n Done abstract interpretation\n========================================\n\n\n\n\n\n" << std::endl;
+}
 
-    unsigned sizes[_layerIndexToLayer.size()];
-    for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
+void NetworkLevelReasoner::startAbstractInterpretation() {
+    //_currentAI = new AbstractInterpretor(); 
+
+    unsigned layerCount = _layerIndexToLayer.size();
+    std::cout << "\n\n\n\n\n\n\n=======================\nstarting init of abstract interpretation\n\n" << std::endl;
+    unsigned *sizes = new unsigned[layerCount];
+    for(unsigned i = 0; i < layerCount; i++) {
         sizes[i] = _layerIndexToLayer[i]->getSize();
     }
 
-    double ***weights = new double**[_layerIndexToLayer.size()-1];
-    for(unsigned i = 0; i < _layerIndexToLayer.size()-1; i++) {
+
+    double ***weights = new double**[layerCount-1];
+
+    for(unsigned i = 0; i < layerCount-1; i++) {
         weights[i] = new double*[sizes[i]];
         for(unsigned j = 0; j < sizes[i]; j++) {
-            weights[i][j] = _layerIndexToLayer[i+1]->getWeights(j);
+            Layer *layer = _layerIndexToLayer[i+1];
+            weights[i][j] = new double[sizes[i+1]];
+            for(unsigned k = 0; k < sizes[i+1]; k++) {
+                weights[i][j][k] = layer->getWeight(i, j, k);
+            }
+        
         }
     }
 
-    double **biases = new double*[_layerIndexToLayer.size()-1];
-    for(unsigned i = 1; i < _layerIndexToLayer.size(); i++) {
-        biases[i-1] = _layerIndexToLayer[i]->getBiases();
+    double **biases = new double*[layerCount-1];
+    for(unsigned i = 0; i < layerCount-1; i++) {
+        biases[i] = new double[sizes[i+1]];
+        for(unsigned j = 0; j < sizes[i+1]; j++) {
+            biases[i][j] = _layerIndexToLayer[i+1]->getBias(j);
+        }
+        if(biases[i] == NULL)
+            std::cout << "Get biases reutnred NULL" << std::endl;
     }
 
     double **initialBounds = new double*[sizes[0]];
@@ -74,15 +93,44 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
         initialBounds[i] = new double[2];
         initialBounds[i][0] = _layerIndexToLayer[0]->getLb(i);
         initialBounds[i][1] = _layerIndexToLayer[0]->getUb(i);
+        std::cout << "[" << initialBounds[i][0] << ", " << initialBounds[i][1] << "]" << std::endl;
     }
 
-    ai->init(_layerIndexToLayer.size(), sizes, weights, biases);
-    ai->setInitialBounds(initialBounds);
-    ai->propagate();
-    ai->printCurrentAv();
+    _currentAI->init(layerCount, sizes, weights, biases);
+    _currentAI->setInitialBounds(initialBounds);
+
+    /**
+    //Free memory
+    std::cout << "Deleting weights...\n";
+    for(unsigned i = 0; i < layerCount-1; i++) {
+        for(unsigned j = 0; j < sizes[i]; j++) {
+            delete[] weights[i][j];
+        }
+        delete[] weights[i];
+    }
+    delete[] weights;
+
+    std::cout << "Deleting biases...\n";
+    for(unsigned i = 0; i < layerCount-1; i++) {
+        delete[] biases[i];
+    }
+    delete[] biases;
+
+    for(unsigned i = 0; i < sizes[0]; i++){
+        delete[] initialBounds[i];
+    }
+    delete[] initialBounds;
+    
+    delete[] sizes;
+    **/
+
+    std::cout << "\n\n Done init of abstract interpretation\n========================================\n\n\n\n\n\n" << std::endl;
 }
 
 
+AbstractInterpretor *NetworkLevelReasoner::getCurrentAI() {
+    return _currentAI;
+}
 
 
 bool NetworkLevelReasoner::functionTypeSupported( PiecewiseLinearFunctionType type )

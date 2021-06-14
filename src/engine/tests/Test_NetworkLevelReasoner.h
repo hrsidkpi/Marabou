@@ -45,7 +45,7 @@ public:
         TS_ASSERT_THROWS_NOTHING( delete mock );
     }
 
-    void populateNetwork( NetworkLevelReasoner &nlr )
+    void populateNetwork(NetworkLevelReasoner &nlr )
     {
         /*
                 a
@@ -113,6 +113,43 @@ public:
         nlr.setNeuronActivationFunction( 2, 1, PiecewiseLinearFunctionType::RELU );
     }
 
+
+    void test_abstract_interpretation() {
+        std::cout << "\n\n\n\n\n\n\n\n ============== \n\n\n\n\n\n\n";
+        return;
+        NetworkLevelReasoner nlr;
+        populateNetwork(nlr);
+
+        // Initialize the bounds
+        MockTableau tableau;
+
+        tableau.setLowerBound( 0, -1 );
+        tableau.setUpperBound( 0, 1 );
+        tableau.setLowerBound( 1, -1 );
+        tableau.setUpperBound( 1, 1 );
+
+        double large = 1000;
+        tableau.setLowerBound( 2, -large ); tableau.setUpperBound( 2, large );
+        tableau.setLowerBound( 3, -large ); tableau.setUpperBound( 3, large );
+        tableau.setLowerBound( 4, -large ); tableau.setUpperBound( 4, large );
+        tableau.setLowerBound( 5, -large ); tableau.setUpperBound( 5, large );
+        tableau.setLowerBound( 6, -large ); tableau.setUpperBound( 6, large );
+        tableau.setLowerBound( 7, -large ); tableau.setUpperBound( 7, large );
+        tableau.setLowerBound( 8, -large ); tableau.setUpperBound( 8, large );
+        tableau.setLowerBound( 9, -large ); tableau.setUpperBound( 9, large );
+        tableau.setLowerBound( 10, -large ); tableau.setUpperBound( 10, large );
+        tableau.setLowerBound( 11, -large ); tableau.setUpperBound( 11, large );
+        tableau.setLowerBound( 12, -large ); tableau.setUpperBound( 12, large );
+        tableau.setLowerBound( 13, -large ); tableau.setUpperBound( 13, large );
+
+        nlr.setTableau( &tableau );
+
+
+        //Perform the abstract interpretation
+        nlr.performAbstractInterpretation();
+    }
+
+
     void test_evaluate_relus()
     {
         NetworkLevelReasoner nlr;
@@ -159,6 +196,8 @@ public:
 
     void test_evaluate_relus_and_abs()
     {
+                TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
 
         populateNetwork( nlr );
@@ -190,8 +229,12 @@ public:
         TS_ASSERT( FloatUtils::areEqual( output[1], 4 ) );
     }
 
+
+
     void test_store_into_other()
     {
+                TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
 
         populateNetwork( nlr );
@@ -239,6 +282,7 @@ public:
 
     void test_interval_arithmetic_bound_propagation_relu_constraints()
     {
+        
         NetworkLevelReasoner nlr;
         populateNetwork( nlr );
 
@@ -371,6 +415,8 @@ public:
 
     void test_interval_arithmetic_bound_propagation_abs_constraints()
     {
+                TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         populateNetwork( nlr );
 
@@ -509,7 +555,8 @@ public:
     }
 
     void populateNetworkSBT( NetworkLevelReasoner &nlr, MockTableau &tableau )
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         /*
               2      R       1
           x0 --- x2 ---> x4 --- x6
@@ -572,7 +619,8 @@ public:
     }
 
     void test_sbt_relus_all_active()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -639,7 +687,8 @@ public:
     }
 
     void test_sbt_relus_active_and_inactive()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -710,7 +759,8 @@ public:
     }
 
     void test_sbt_relus_active_and_not_fixed()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -785,7 +835,8 @@ public:
     }
 
     void test_sbt_relus_active_and_externally_fixed()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -859,7 +910,8 @@ public:
     }
 
     void test_sbt_abs_all_positive()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -929,7 +981,8 @@ public:
     }
 
     void test_sbt_abs_positive_and_negative()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -1003,7 +1056,8 @@ public:
     }
 
     void test_sbt_absolute_values_positive_and_not_fixed()
-    {
+    {        TS_ASSERT_EQUALS(2, 4);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
@@ -1080,7 +1134,8 @@ public:
     }
 
     void test_sbt_absolute_values_active_and_externally_fixed()
-    {
+    {        TS_ASSERT(false);
+
         NetworkLevelReasoner nlr;
         MockTableau tableau;
         nlr.setTableau( &tableau );
