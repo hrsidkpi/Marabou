@@ -15,8 +15,8 @@ class AbstractInterpretor {
 public:
 
     ~AbstractInterpretor() {
-        free(_env);
-        free(_currentAV);
+        delete _currentAV;
+        delete _env;
     }
 
     void init(unsigned numberOfLayers, unsigned *layerSizes, double ***weights, double **bias) {
@@ -52,7 +52,8 @@ public:
         }
         std::cout << "]\n" << std::flush;
 
-        _env = new AbstractEnviroment(numberOfLayers, layerSizes, weights, bias);
+        void *p = (void*) new AbstractEnviroment(numberOfLayers, layerSizes, weights, bias);
+        _env = (AbstractEnviroment *) p;
         std::cout <<"Done initializing AbstractInterpretor with " << _env->_numberOfLayers << " layers. " << std::endl;
     }
 
@@ -67,18 +68,39 @@ public:
     void propagate() {
         for(unsigned i = 0; i < _env->_numberOfLayers-1; i++) {
             std::cout << "Propagating... Layer " << i << " to " << i+1 << std::endl;
+
+
+            AbstractValue *temp = _currentAV;
             _currentAV = _currentAV->performAffineTransformation(_env->_weights[i], _env->_bias[i]);
+            delete temp;
             std::cout << "After affine: " << std::endl;
             printCurrentAv();
+
+            temp = _currentAV;
             _currentAV = _currentAV->performRelu();
+            delete temp;
             std::cout << "After relu: " << std::endl;
             printCurrentAv();
+
             std::cout << "\n\n" << std::endl;
         }
         
     }
 
     void printCurrentAv() {
+        if(_env == NULL) {
+            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+        }
+        if(_env->_manager == NULL) {
+            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+        }
+        if(_currentAV == NULL) {
+            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+        }
+        if(_currentAV->_ap_value == NULL) {
+            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+        }
+        std::cout << "ap_value->ap0 is: " << _currentAV->_ap_value->abstract0 << std::endl;
         ap_abstract1_fprint(stdout, _env->_manager, _currentAV->_ap_value);
     }
 

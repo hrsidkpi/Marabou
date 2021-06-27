@@ -212,7 +212,7 @@ public:
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
 
-
+        ap_interval_free(bounds1);
 
         ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnviroment()->_manager, val, const_cast<char *>("x_2_a_1"));
         double lb2 = bounds2->inf->val.dbl;
@@ -225,6 +225,8 @@ public:
         if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
 
         std::cout << "\n\nDone testing abstract interpretation result\n==================================\n\n\n\n\n" << std::endl;
+
+        ap_interval_free(bounds2);
     }
 
     void test_evaluate_relus()

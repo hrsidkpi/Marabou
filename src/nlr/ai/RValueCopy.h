@@ -9,13 +9,13 @@
 
 namespace NLR {
 
-
+/**
 static ap_abstract1_t *AV_addr(ap_abstract1_t val) {
     ap_abstract1_t *res = new ap_abstract1_t();
     *res = val;
     return res;
 }
-
+**/
 }
 
 

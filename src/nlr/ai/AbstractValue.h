@@ -16,8 +16,10 @@ class AbstractValue {
 public:
 
     ~AbstractValue() {
+        //ap_abstract1_clear(_manager->_manager, _ap_value);
+        ap_abstract1_clear(_manager->_manager, _ap_value);
         delete _ap_value;
-        delete _manager;
+        _ap_value = NULL;
     }
 
     ap_abstract1_t *_ap_value;
@@ -43,7 +45,7 @@ public:
         for(unsigned i = 0; i < _manager->_layerSizes[0]; i++) {
             
 
-            char * varName = new char[20];
+            char varName[20];
             sprintf(varName, "x_0_a_%d", i);
 
             std::cout << "Setting bounds for neuron " << varName << "(" << i  << ")" << std::endl; 
@@ -71,8 +73,11 @@ public:
         }
 
         _ap_value = new ap_abstract1_t();
-        *_ap_value = ap_abstract1_of_lincons_array(_manager->_manager, _manager->_env, &constraintArray);
-        //ap_lincons1_array_clear(&constraintArray);
+        ap_abstract1_t t = ap_abstract1_of_lincons_array(_manager->_manager, _manager->_env, &constraintArray);
+        *_ap_value = ap_abstract1_copy(_manager->_manager, &t);
+        ap_abstract1_clear(_manager->_manager, &t);
+        
+        ap_lincons1_array_clear(&constraintArray);
         
     }
 
@@ -104,7 +109,7 @@ public:
                                   AP_END);
             for(unsigned j = 0; j < currLayerSize; j++) {
                 double weight = weights[j][i];
-                char *jVarName = new char[20];
+                char jVarName[20];
                 sprintf(jVarName, "x_%d_a_%d", _layerIndex, j);
 
                 std::cout << " + " << weight << "*" << jVarName;
@@ -120,11 +125,17 @@ public:
         }
 
         AbstractValue *newVal = new AbstractValue(_manager, _layerIndex + 1);
+        
         newVal->_ap_value = new ap_abstract1_t();
-        *(newVal->_ap_value) = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &constraintArray);
+        std::cout << "In affine, _ap_value env is: " << _ap_value->env << ", manager: " << _manager->_manager << ", constraint array env: " << constraintArray.env << std::endl;
+        ap_abstract1_t t = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &constraintArray);
+        *(newVal->_ap_value) = t;
+        
+
 
         ap_lincons1_array_clear(&constraintArray);
 
+        delete[] varName;
         return newVal;
     }
 
@@ -136,7 +147,7 @@ public:
 
         unsigned layerSize = _manager->_layerSizes[_layerIndex];
 
-        ap_abstract1_t *currentAV = _ap_value;
+        ap_abstract1_t currentAV = ap_abstract1_copy(_manager->_manager, _ap_value);
 
         for(unsigned i = 0; i < layerSize; ++i) {
             // Active case: neuron is positive and unchanged
@@ -153,7 +164,8 @@ public:
                                     AP_END );
             ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );
 
-            ap_abstract1_t activeAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, currentAV, &activeConstraintArray);
+            ap_abstract1_t activeAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, &currentAV, &activeConstraintArray);
+            ap_lincons1_array_clear(&activeConstraintArray);
 
 
             //Apply transformation for active condition (x=x)
@@ -167,7 +179,10 @@ public:
                                     AP_END );
             ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );
 
-            activeAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, &activeAV, &activeConstraintArray);
+            ap_abstract1_t  activeAV1 = ap_abstract1_meet_lincons_array(_manager->_manager, false, &activeAV, &activeConstraintArray);
+            ap_abstract1_clear(_manager->_manager, &activeAV);
+            activeAV = activeAV1;
+            ap_lincons1_array_clear(&activeConstraintArray);
 
 
 
@@ -184,7 +199,9 @@ public:
                                     AP_END );
             ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );
 
-            ap_abstract1_t *inactiveAV = AV_addr(ap_abstract1_meet_lincons_array(_manager->_manager, false, currentAV, &inactiveConstraintArray));
+            ap_abstract1_t inactiveAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, &currentAV, &inactiveConstraintArray);
+            ap_lincons1_array_clear(&inactiveConstraintArray);
+
 
             //Apply transformation for inactive condition (x=x)
             inactiveConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
@@ -195,27 +212,28 @@ public:
                                     AP_END );
             ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );
 
-            if(ap_abstract1_is_bottom(_manager->_manager, inactiveAV)) {
-                inactiveAV = AV_addr(ap_abstract1_bottom(_manager->_manager, _manager->_env));
+            ap_abstract1_t inactiveAV2;
+            if(ap_abstract1_is_bottom(_manager->_manager, &inactiveAV)) {
+                inactiveAV2 = ap_abstract1_bottom(_manager->_manager, _manager->_env);
             }
             else {
-                inactiveAV = AV_addr(ap_abstract1_meet_lincons_array(_manager->_manager, false, inactiveAV, &inactiveConstraintArray));
+                inactiveAV2 = ap_abstract1_meet_lincons_array(_manager->_manager, false, &inactiveAV, &inactiveConstraintArray);
             }
+            ap_abstract1_clear(_manager->_manager, &inactiveAV);
+            ap_lincons1_array_clear(&inactiveConstraintArray);
             
-            printf( "\n inactive AV:\n" );
-            ap_abstract1_fprint( stdout, _manager->_manager, inactiveAV );
-
 
             // Join the results
-            currentAV = AV_addr(ap_abstract1_join( _manager->_manager, false, &activeAV, inactiveAV));
-
-            ap_lincons1_array_clear(&inactiveConstraintArray);
-            ap_lincons1_array_clear(&activeConstraintArray);
-
+            ap_abstract1_clear(_manager->_manager, &currentAV);
+            currentAV = ap_abstract1_join( _manager->_manager, false, &activeAV, &inactiveAV2);
+            ap_abstract1_clear(_manager->_manager, &inactiveAV2);
+            ap_abstract1_clear(_manager->_manager, &activeAV);
         }
 
         AbstractValue *newVal = new AbstractValue(_manager, _layerIndex);
-        newVal->_ap_value = currentAV;
+        newVal->_ap_value = new ap_abstract1_t();
+        *(newVal->_ap_value) = ap_abstract1_copy(_manager->_manager, &currentAV);
+        ap_abstract1_clear(_manager->_manager, &currentAV);
         return newVal;
     }
 

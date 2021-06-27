@@ -38,11 +38,14 @@ NetworkLevelReasoner::NetworkLevelReasoner()
     : _tableau( NULL )
     , _deepPolyAnalysis( nullptr )
 {
+    _currentAI = NULL;
 }
 
 NetworkLevelReasoner::~NetworkLevelReasoner()
 {
     freeMemoryIfNeeded();
+    if (_currentAI != NULL)
+        delete _currentAI;
 }
 
 
@@ -54,7 +57,7 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
 }
 
 void NetworkLevelReasoner::startAbstractInterpretation() {
-    //_currentAI = new AbstractInterpretor(); 
+    _currentAI = new AbstractInterpretor(); 
 
     unsigned layerCount = _layerIndexToLayer.size();
     std::cout << "\n\n\n\n\n\n\n=======================\nstarting init of abstract interpretation\n\n" << std::endl;

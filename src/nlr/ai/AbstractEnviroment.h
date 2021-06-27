@@ -30,9 +30,10 @@ public:
         delete[] _bias;
 
         delete[] _layerSizes;
-        delete _manager;
-        delete _env;
         
+        std::cout << "Deleting env...\n";
+        ap_environment_free2(_env);
+        ap_manager_free(_manager);
     }
 
     unsigned _numberOfLayers;
@@ -90,6 +91,12 @@ private:
         
         _env = ap_environment_alloc(NULL, 0, (void **)&variableNames[0], totalNumberOfVariables );
         
+        for(unsigned i = 0; i < counter; ++i) 
+        {
+            delete[] variableNames[i];
+        }
+        delete[] variableNames;
+
     }
 
 };
