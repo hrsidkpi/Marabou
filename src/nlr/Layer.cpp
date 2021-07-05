@@ -367,7 +367,10 @@ double Layer::getWeight( unsigned sourceLayer,
                          unsigned targetNeuron ) const
 {
     unsigned index = sourceNeuron * _size + targetNeuron;
-    return _layerToWeights[sourceLayer][index];
+    std::cout<<"layer: " << sourceLayer << std::endl;
+    double* layerWeights = _layerToWeights[sourceLayer];
+    std::cout<<"First weight: " << layerWeights[0] << std::endl;
+    return layerWeights[index];
 }
 
 double *Layer::getWeights( unsigned sourceLayerIndex ) const

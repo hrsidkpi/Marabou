@@ -61,10 +61,18 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
 
     unsigned layerCount = _layerIndexToLayer.size();
     std::cout << "\n\n\n\n\n\n\n=======================\nstarting init of abstract interpretation\n\n" << std::endl;
+    
+    
+    std::cout << "Sizes: ";
     unsigned *sizes = new unsigned[layerCount];
     for(unsigned i = 0; i < layerCount; i++) {
-        sizes[i] = _layerIndexToLayer[i]->getSize();
+        unsigned size = _layerIndexToLayer[i]->getSize();
+        sizes[i] = size;
+        std::cout << size << ", ";
     }
+    std::cout << std::endl;
+
+    std::cout << "Done getting sizes"<< std::endl;
 
 
     double ***weights = new double**[layerCount-1];
@@ -75,13 +83,17 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
             Layer *layer = _layerIndexToLayer[i+1];
             weights[i][j] = new double[sizes[i+1]];
             for(unsigned k = 0; k < sizes[i+1]; k++) {
+                std::cout<<i<<","<<j<<","<<k<<std::endl;
                 weights[i][j][k] = layer->getWeight(i, j, k);
             }
         
         }
     }
 
+    std::cout << "Done getting weights"<< std::endl;
+
     double **biases = new double*[layerCount-1];
+
     for(unsigned i = 0; i < layerCount-1; i++) {
         biases[i] = new double[sizes[i+1]];
         for(unsigned j = 0; j < sizes[i+1]; j++) {
@@ -91,6 +103,8 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
             std::cout << "Get biases reutnred NULL" << std::endl;
     }
 
+    std::cout << "Done getting biases"<< std::endl;
+
     double **initialBounds = new double*[sizes[0]];
     for(unsigned i = 0; i < sizes[0]; i++){
         initialBounds[i] = new double[2];
@@ -98,6 +112,8 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
         initialBounds[i][1] = _layerIndexToLayer[0]->getUb(i);
         std::cout << "[" << initialBounds[i][0] << ", " << initialBounds[i][1] << "]" << std::endl;
     }
+
+    std::cout << "Done getting bounds"<< std::endl;
 
     _currentAI->init(layerCount, sizes, weights, biases);
     _currentAI->setInitialBounds(initialBounds);

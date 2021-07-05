@@ -92,6 +92,8 @@ void Marabou::prepareInputQuery()
         _acasParser->generateQuery( _inputQuery );
         _inputQuery.constructNetworkLevelReasoner();
 
+        
+
         /*
           Step 2: extract the property in question
         */
@@ -123,6 +125,13 @@ void Marabou::solveQuery()
 
     if ( _engine.getExitCode() == Engine::SAT )
         _engine.extractSolution( _inputQuery );
+
+    //Perform abstract interpretation
+    //Should remove this line
+    printf("TODO REMOVE Abstract Interpretation hard coded stuff in Marabou.cpp::solveQuery");
+    _inputQuery._networkLevelReasoner->startAbstractInterpretation();
+    _inputQuery._networkLevelReasoner->performAbstractInterpretation();
+    _inputQuery._networkLevelReasoner->getCurrentAI()->printCurrentAv();
 }
 
 void Marabou::displayResults( unsigned long long microSecondsElapsed ) const
