@@ -33,6 +33,8 @@ namespace NLR {
 class Layer
 {
 public:
+
+
     enum Type {
         // Linear layers
         INPUT = 0,
@@ -54,6 +56,7 @@ public:
     ~Layer();
 
     void setLayerOwner( LayerOwner *layerOwner );
+    LayerOwner *getLayerOwner();
     void addSourceLayer( unsigned layerNumber, unsigned layerSize );
     void removeSourceLayer( unsigned sourceLayer );
     const Map<unsigned, unsigned> &getSourceLayers() const;
@@ -126,6 +129,7 @@ public:
     void obtainCurrentBounds();
     void computeSymbolicBounds();
     void computeIntervalArithmeticBounds();
+
 
     /*
       Preprocessing functionality: variable elimination and reindexing

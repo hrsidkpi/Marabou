@@ -29,6 +29,10 @@ void Layer::setLayerOwner( LayerOwner *layerOwner )
     _layerOwner = layerOwner;
 }
 
+LayerOwner *Layer::getLayerOwner() {
+    return _layerOwner;
+}
+
 Layer::Layer( unsigned index, Type type, unsigned size, LayerOwner *layerOwner )
     : _layerIndex( index )
     , _type( type )
@@ -367,9 +371,7 @@ double Layer::getWeight( unsigned sourceLayer,
                          unsigned targetNeuron ) const
 {
     unsigned index = sourceNeuron * _size + targetNeuron;
-    std::cout<<"layer: " << sourceLayer << std::endl;
     double* layerWeights = _layerToWeights[sourceLayer];
-    std::cout<<"First weight: " << layerWeights[0] << std::endl;
     return layerWeights[index];
 }
 
@@ -488,13 +490,13 @@ double *Layer::getUbs() const
 
 void Layer::setLb( unsigned neuron, double bound )
 {
-    ASSERT( !_eliminatedNeurons.exists( neuron ) );
+    //ASSERT( !_eliminatedNeurons.exists( neuron ) );
     _lb[neuron] = bound;
 }
 
 void Layer::setUb( unsigned neuron, double bound )
 {
-    ASSERT( !_eliminatedNeurons.exists( neuron ) );
+    //ASSERT( !_eliminatedNeurons.exists( neuron ) );
     _ub[neuron] = bound;
 }
 

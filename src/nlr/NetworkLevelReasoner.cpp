@@ -44,91 +44,69 @@ NetworkLevelReasoner::NetworkLevelReasoner()
 NetworkLevelReasoner::~NetworkLevelReasoner()
 {
     freeMemoryIfNeeded();
-    if (_currentAI != NULL)
+    if (_currentAI != NULL) {
+        std::cout << "Deleting abstract interpretor" << std::endl;
         delete _currentAI;
+    }
 }
 
 
 
 void NetworkLevelReasoner::performAbstractInterpretation() {
-    std::cout << "\n\n\n\n\n\n\n=======================\nstarting abstract interpretation\n\n" << std::endl;
     _currentAI->propagate();
-    std::cout << "\n\n Done abstract interpretation\n========================================\n\n\n\n\n\n" << std::endl;
+
+    //Update the bounds
+    for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
+        Layer *layer = _layerIndexToLayer[i];
+        for(unsigned neuron = 0; neuron < layer->getSize(); neuron++) {
+            char varname[20];
+            sprintf(varname, "x_%d_%d", i,  neuron);
+            ap_interval_t *bounds = ap_abstract1_bound_variable(getCurrentAI()->getEnvironment()->_manager, getCurrentAI()->getCurrentAV()->_ap_value, const_cast<char *>(varname));
+            double lb = bounds->inf->val.dbl;
+            double ub = bounds->sup->val.dbl;
+
+            std::cout<<"======================== (" << i << ", " << neuron << "): " << lb <<", " << ub << " ============================" << std::endl;
+
+            layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, lb, Tightening::LB));
+            layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, ub, Tightening::UB));
+
+            layer->setUb(neuron, ub);
+            layer->setLb(neuron, lb);
+
+            ap_interval_free(bounds);
+        }
+    }
 }
 
 void NetworkLevelReasoner::startAbstractInterpretation() {
-    _currentAI = new AbstractInterpretor(); 
+    _currentAI = new AbstractInterpretorRaw(); 
 
     unsigned layerCount = _layerIndexToLayer.size();
-    std::cout << "\n\n\n\n\n\n\n=======================\nstarting init of abstract interpretation\n\n" << std::endl;
     
-    
-    std::cout << "Sizes: ";
-    unsigned *sizes = new unsigned[layerCount];
-    for(unsigned i = 0; i < layerCount; i++) {
-        unsigned size = _layerIndexToLayer[i]->getSize();
-        sizes[i] = size;
-        std::cout << size << ", ";
-    }
-    std::cout << std::endl;
 
-    std::cout << "Done getting sizes"<< std::endl;
-
-
-    double ***weights = new double**[layerCount-1];
-
-    for(unsigned i = 0; i < layerCount-1; i++) {
-        weights[i] = new double*[sizes[i]];
-        for(unsigned j = 0; j < sizes[i]; j++) {
-            Layer *layer = _layerIndexToLayer[i+1];
-            weights[i][j] = new double[sizes[i+1]];
-            for(unsigned k = 0; k < sizes[i+1]; k++) {
-                std::cout<<i<<","<<j<<","<<k<<std::endl;
-                weights[i][j][k] = layer->getWeight(i, j, k);
-            }
-        
-        }
-    }
-
-    std::cout << "Done getting weights"<< std::endl;
-
-    double **biases = new double*[layerCount-1];
-
-    for(unsigned i = 0; i < layerCount-1; i++) {
-        biases[i] = new double[sizes[i+1]];
-        for(unsigned j = 0; j < sizes[i+1]; j++) {
-            biases[i][j] = _layerIndexToLayer[i+1]->getBias(j);
-        }
-        if(biases[i] == NULL)
-            std::cout << "Get biases reutnred NULL" << std::endl;
-    }
-
-    std::cout << "Done getting biases"<< std::endl;
-
-    double **initialBounds = new double*[sizes[0]];
-    for(unsigned i = 0; i < sizes[0]; i++){
+    double **initialBounds = new double*[_layerIndexToLayer[0]->getSize()];
+    for(unsigned i = 0; i < _layerIndexToLayer[0]->getSize(); i++){
         initialBounds[i] = new double[2];
         initialBounds[i][0] = _layerIndexToLayer[0]->getLb(i);
         initialBounds[i][1] = _layerIndexToLayer[0]->getUb(i);
-        std::cout << "[" << initialBounds[i][0] << ", " << initialBounds[i][1] << "]" << std::endl;
     }
 
-    std::cout << "Done getting bounds"<< std::endl;
+    Layer** layerPointers = new Layer*[layerCount];
+    for(unsigned i = 0; i < layerCount; i++) {
+        layerPointers[i] = _layerIndexToLayer[i];
+    }
 
-    _currentAI->init(layerCount, sizes, weights, biases);
+    _currentAI->init(layerCount, layerPointers);
     _currentAI->setInitialBounds(initialBounds);
 
-    for(unsigned i = 0; i < sizes[0]; i++){
+    for(unsigned i = 0; i < _layerIndexToLayer[0]->getSize(); i++){
         delete[] initialBounds[i];
     }
     delete[] initialBounds;
-
-
-    std::cout << "\n\n Done init of abstract interpretation\n========================================\n\n\n\n\n\n" << std::endl;
 }
 
 
-AbstractInterpretor *NetworkLevelReasoner::getCurrentAI() {
+AbstractInterpretorRaw *NetworkLevelReasoner::getCurrentAI() {
     return _currentAI;
 }
 

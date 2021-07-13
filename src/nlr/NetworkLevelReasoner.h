@@ -27,9 +27,7 @@
 #include "Tightening.h"
 #include "Vector.h"
 
-#include "ai/AbstractInterpretor.h"
-
-#include "box.h"
+#include "ai/AbstractInterpretorRaw.h"
 
 #include <memory>
 
@@ -48,7 +46,7 @@ public:
 
     static bool functionTypeSupported( PiecewiseLinearFunctionType type );
 
-    AbstractInterpretor *getCurrentAI();
+    AbstractInterpretorRaw *getCurrentAI();
 
     /*
       Populate the NLR by specifying the network's topology.
@@ -194,7 +192,7 @@ private:
     char **_variableNames;
     unsigned _totalNumberOfVariables;
 
-    AbstractInterpretor *_currentAI;
+    AbstractInterpretorRaw *_currentAI;
 
 
     // Tightenings discovered by the various layers

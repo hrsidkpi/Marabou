@@ -1111,6 +1111,16 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
 
         if ( preprocess )
         {
+
+            std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
+            _networkLevelReasoner->dumpBounds();
+            std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;            
+            _networkLevelReasoner->startAbstractInterpretation();
+            std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
+            _networkLevelReasoner->performAbstractInterpretation();
+            std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
+            _networkLevelReasoner->dumpBounds();
+
             performSymbolicBoundTightening();
             performSimulation();
             performMILPSolverBoundedTightening();
@@ -1854,6 +1864,8 @@ void Engine::performSimulation()
 
 void Engine::performSymbolicBoundTightening()
 {
+    return;
+
     if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::NONE ||
          ( !_networkLevelReasoner ) )
         return;

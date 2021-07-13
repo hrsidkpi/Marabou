@@ -60,9 +60,7 @@ public:
     void setInitialBounds(double **bounds) {
         std::cout << "Setting initial bounds " << std::endl;
         _currentAV = new AbstractValue(_env, 0);
-        _currentAV->initAsFirstLayer(bounds);
-        printCurrentAv();
-        
+        _currentAV->initAsFirstLayer(bounds);        
     }
 
     void propagate() {
@@ -73,16 +71,11 @@ public:
             AbstractValue *temp = _currentAV;
             _currentAV = _currentAV->performAffineTransformation(_env->_weights[i], _env->_bias[i]);
             delete temp;
-            std::cout << "After affine: " << std::endl;
-            printCurrentAv();
 
             temp = _currentAV;
             _currentAV = _currentAV->performRelu();
             delete temp;
-            std::cout << "After relu: " << std::endl;
-            printCurrentAv();
 
-            std::cout << "\n\n" << std::endl;
         }
         
     }
