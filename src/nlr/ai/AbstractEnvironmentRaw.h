@@ -4,6 +4,7 @@
 
 #include "ap_global1.h"
 #include "oct.h"
+#include "t1p.h"
 #include "Layer.h"
 
 namespace NLR {
@@ -37,7 +38,7 @@ private:
 
 
     void allocate() {
-        _manager = oct_manager_alloc();
+        _manager = t1p_manager_alloc();
 
         // Count the total number of variables
         unsigned totalNumberOfVariables = 0;
