@@ -12,6 +12,7 @@
 #include "t1p_representation.h"
 #include "t1p_fun.h"
 #include "t1p_itv_utils.h"
+#include "t1p_meetjoin.h"
 
 #include "itv_linearize.h"
 
@@ -59,7 +60,7 @@ t1p_t* t1p_substitute_linexpr_array(ap_manager_t* man,
 }
 
 /* evaluate an apron tree expression */
-/* TODO: dest and destructive are not used */
+/* TODO: destructive not used */
 t1p_t* t1p_assign_texpr_array(ap_manager_t* man,
 			      bool destructive,
 			      t1p_t* a,
@@ -79,26 +80,26 @@ t1p_t* t1p_assign_texpr_array(ap_manager_t* man,
     fprintf(stdout, "### ASSIGN TEXPR ARRAY (des %d) %tx ###\n", destructive,(intptr_t)a);
     //t1p_fprint(stdout, man, a, NULL);
     for (i=0; i<size; i++) {
-	fprintf(stdout, "(%d) = ", tdim[i]);
-	ap_texpr0_fprint(stdout, texpr[i], NULL);
+        fprintf(stdout, "(%d) = ", tdim[i]);
+        ap_texpr0_fprint(stdout, texpr[i], NULL);
     }
     fprintf(stdout, "\n### ### ###\n");
 #endif
     t1p_t* res = t1p_copy(man, a);
     for (i=0; i<res->dims; i++) itv_set(res->paf[i]->itv, res->box[i]);
     for (i=0; i<size; i++) {
-	t1p_aff_check_free(pr, res->paf[tdim[i]]);
-	res->paf[tdim[i]] = t1p_aff_eval_ap_texpr0(pr, texpr[i], a);
-	t1p_aff_reduce(pr, res->paf[tdim[i]]);
-	if (t1p_aff_is_top(pr, res->paf[tdim[i]])) {
-	    t1p_aff_check_free(pr, res->paf[tdim[i]]);
-	    res->paf[tdim[i]] = pr->top;
-	} else if (t1p_aff_is_bottom(pr, res->paf[tdim[i]])) {
-	    t1p_aff_check_free(pr, res->paf[tdim[i]]);
-	    res->paf[tdim[i]] = pr->bot;
-	}
-	itv_set(res->box[tdim[i]],res->paf[tdim[i]]->itv);
-	res->paf[tdim[i]]->pby++;
+        t1p_aff_check_free(pr, res->paf[tdim[i]]);
+        res->paf[tdim[i]] = t1p_aff_eval_ap_texpr0(pr, texpr[i], a);
+        t1p_aff_reduce(pr, res->paf[tdim[i]]);
+        if (t1p_aff_is_top(pr, res->paf[tdim[i]])) {
+            t1p_aff_check_free(pr, res->paf[tdim[i]]);
+            res->paf[tdim[i]] = pr->top;
+        } else if (t1p_aff_is_bottom(pr, res->paf[tdim[i]])) {
+            t1p_aff_check_free(pr, res->paf[tdim[i]]);
+            res->paf[tdim[i]] = pr->bot;
+        }
+        itv_set(res->box[tdim[i]],res->paf[tdim[i]]->itv);
+        res->paf[tdim[i]]->pby++;
     }
     /* TODO: mettre top pour le moment */
     man->result.flag_best = tbool_top;
@@ -108,7 +109,12 @@ t1p_t* t1p_assign_texpr_array(ap_manager_t* man,
     t1p_fprint(stdout, man, res, NULL);
     fprintf(stdout, "### ### ###\n");
 #endif
-    return res;
+    /* intersect the result with dest */ 
+    if (dest != NULL) {
+        t1p_t* ress = t1p_meet(man, false, res, dest);
+        free(res);
+        return ress;
+    } else return res; 
 }
 
 t1p_t* t1p_substitute_texpr_array(ap_manager_t* man,

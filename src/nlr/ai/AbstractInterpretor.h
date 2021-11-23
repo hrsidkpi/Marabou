@@ -76,6 +76,8 @@ public:
             _currentAV = _currentAV->performRelu();
             delete temp;
 
+            printCurrentAv();
+
         }
         
     }

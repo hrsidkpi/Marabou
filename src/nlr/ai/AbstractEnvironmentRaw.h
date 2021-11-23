@@ -3,9 +3,12 @@
 
 
 #include "ap_global1.h"
-#include "oct.h"
+//#include "oct.h"
+#include "box.h"
+#include "pk.h"
 #include "t1p.h"
 #include "Layer.h"
+#include "pkeq.h"
 
 namespace NLR {
 
@@ -27,18 +30,36 @@ public:
     ap_manager_t *_manager;
     ap_environment_t *_env;
 
-    AbstractEnvironmentRaw(unsigned numberOfLayers, Layer **layers) {
+    AbstractEnvironmentRaw(unsigned numberOfLayers, Layer **layers, int domainType) {
         _numberOfLayers = numberOfLayers;
         _layers = layers;
 
-        allocate();
+        _manager = NULL;
+
+        allocate(domainType);
     }
 
 private:
 
 
-    void allocate() {
-        _manager = t1p_manager_alloc();
+    void allocate(int domainType) {
+        if (domainType == 0) {
+            std::cout << "using box (domain type 0)" << std::endl;
+            _manager = box_manager_alloc();
+        }
+        else if(domainType == 1) {
+            std::cout << "using oct (domain type 1)" << std::endl;
+            //_manager = oct_manager_alloc();
+        }
+        else if(domainType == 2) {
+            std::cout << "using pk/t1p (domain type 2)" << std::endl;
+            //_manager = t1p_manager_alloc();
+            _manager = pk_manager_alloc(1);
+        }
+        else {
+            std::cout << "domain type " << domainType << " not found, defaulting to box." << std::endl;
+            _manager = box_manager_alloc();
+        }
 
         // Count the total number of variables
         unsigned totalNumberOfVariables = 0;

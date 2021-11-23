@@ -64,6 +64,7 @@ public:
         }
 
         _ap_value = new ap_abstract1_t();
+
         ap_abstract1_t t = ap_abstract1_of_lincons_array(_manager->_manager, _manager->_env, &constraintArray);
         *_ap_value = ap_abstract1_copy(_manager->_manager, &t);
         ap_abstract1_clear(_manager->_manager, &t);
@@ -88,6 +89,7 @@ public:
 
 
             sprintf(varName, "x_%d_%d", _layerIndex+1, i);
+            std::cout << varName << " = ";
             
             ap_lincons1_set_list( &cons,
                                   AP_COEFF_S_INT, -1, varName,
@@ -97,12 +99,14 @@ public:
                 double weight = weightsMatrix[j*currLayerSize + i];
                 char jVarName[20];
                 sprintf(jVarName, "x_%d_%d", _layerIndex, j);
-
+                
+                std::cout << weight << "*" << jVarName << " + "; 
 
                 ap_lincons1_set_list( &cons,
                                       AP_COEFF_S_DOUBLE, weight, jVarName,
                                       AP_END);
             }
+            std::cout << std::endl;
             
             ap_lincons1_array_set(&constraintArray, i, &cons);
         }
@@ -110,10 +114,9 @@ public:
         AbstractValueRaw *newVal = new AbstractValueRaw(_manager, _layerIndex + 1);
         
         newVal->_ap_value = new ap_abstract1_t();
+
         ap_abstract1_t t = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &constraintArray);
         *(newVal->_ap_value) = t;
-        
-
 
         ap_lincons1_array_clear(&constraintArray);
 

@@ -125,6 +125,9 @@ public:
 
     void incNumTighteningsFromSymbolicBoundTightening( unsigned increment );
 
+    void incNumTighteningsFromAbstractInterpretation( unsigned increment );
+
+
     /*
       Basis factorization statistics
     */
@@ -242,6 +245,9 @@ private:
 
     // The number of bounds tightened via symbolic bound tightening
     unsigned long long _numTighteningsFromSymbolicBoundTightening;
+
+    // The number of bounds tightened via abstract interpretation
+    unsigned long long _numTighteningsFromAbstractIntrepretation;
 
     // Number of pivot rows examined by the row tightener, and consequent tightenings
     // proposed.

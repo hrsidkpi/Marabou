@@ -125,7 +125,7 @@ public:
     void iterativePropagation();
 
     void performAbstractInterpretation();
-    void startAbstractInterpretation();
+    void startAbstractInterpretation(int domainType);
 
     void receiveTighterBound( Tightening tightening );
     void getConstraintTightenings( List<Tightening> &tightenings );

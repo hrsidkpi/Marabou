@@ -206,7 +206,8 @@ bool Engine::solve( unsigned timeoutInSeconds )
             {
                 do
                 {
-                    performSymbolicBoundTightening();
+                    performAbstractInterpretationTightening();
+                    //performSymbolicBoundTightening();
                 }
                 while ( applyAllValidConstraintCaseSplits() );
                 splitJustPerformed = false;
@@ -1115,7 +1116,7 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
             std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
             _networkLevelReasoner->dumpBounds();
             std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->startAbstractInterpretation();
+            _networkLevelReasoner->startAbstractInterpretation(0);
             std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
             _networkLevelReasoner->performAbstractInterpretation();
             std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
@@ -1860,6 +1861,41 @@ void Engine::performSimulation()
         simulations.append( simulationInput );
     }
     _networkLevelReasoner->simulate( &simulations );
+}
+
+void Engine::performAbstractInterpretationTightening() 
+{
+    std::cout << "performing AI step" << std::endl;
+
+    _networkLevelReasoner->obtainCurrentBounds();
+    
+    _networkLevelReasoner->startAbstractInterpretation(0);
+    _networkLevelReasoner->performAbstractInterpretation();
+    
+    List<Tightening> tightenings;
+    _networkLevelReasoner->getConstraintTightenings( tightenings );
+
+    unsigned numTightenedBounds = 0;
+    for ( const auto &tightening : tightenings )
+    {
+
+        if ( tightening._type == Tightening::LB &&
+             FloatUtils::gt( tightening._value, _tableau->getLowerBound( tightening._variable ) ) )
+        {
+            _tableau->tightenLowerBound( tightening._variable, tightening._value );
+            ++numTightenedBounds;
+        }
+
+        if ( tightening._type == Tightening::UB &&
+             FloatUtils::lt( tightening._value, _tableau->getUpperBound( tightening._variable ) ) )
+        {
+            _tableau->tightenUpperBound( tightening._variable, tightening._value );
+            ++numTightenedBounds;
+        }
+    }
+    _statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
+    std::cout << "done performing AI step." << std::endl;
+
 }
 
 void Engine::performSymbolicBoundTightening()

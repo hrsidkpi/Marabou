@@ -20,8 +20,8 @@ public:
         delete _env;
     }
 
-    void init(unsigned numberOfLayers, Layer** layerPointers) {
-        _env = new AbstractEnvironmentRaw(numberOfLayers, layerPointers);
+    void init(unsigned numberOfLayers, Layer** layerPointers, int domainType) {
+        _env = new AbstractEnvironmentRaw(numberOfLayers, layerPointers, domainType);
     }
 
     void setInitialBounds(double **bounds) {
@@ -39,6 +39,7 @@ public:
             AbstractValueRaw *temp = _currentAV;
 
             if(layer->getLayerType() == Layer::WEIGHTED_SUM) {
+                std::cout << "Performing affine transformation" << std::endl;
                 _currentAV = _currentAV->performAffineTransformation(layer->getWeightMatrix(i), layer->getBiases());
             }
 
@@ -48,6 +49,8 @@ public:
 
             //Delete the previous (now unused) value
             delete temp;
+
+            printCurrentAv();
         }        
     }
 

@@ -2,7 +2,7 @@
 @c -*-texinfo-*-
 @c %**start of header
 @setfilename apron.info
-@settitle APRON 0.9.10
+@settitle APRON 0.9.13
 @c @setcontentsaftertitlepage
 @c include version.texi
 @iftex
@@ -15,8 +15,6 @@
 @c executables.
 
 @c Please read the COPYING file packaged in the distribution
-
-@setcontentsaftertitlepage
 
 @tex
 \global\parskip=0.5ex
@@ -52,7 +50,7 @@ numerical variables.
 
 @title APRON
 @subtitle The APRON library
-@subtitle Edition 0.9.8, October 2007
+@subtitle Version 0.9.13
 
 @author by Bertrand Jeannet and the APRON team
 @c Include the Distribution inside the titlepage so
@@ -69,6 +67,7 @@ numerical variables.
 @contents
 @end ifnothtml
 
+@ifnottex
 @menu
 * Copying::
 * Introduction to APRON::
@@ -80,8 +79,8 @@ numerical variables.
 * Level 0 of the interface::
 * Functions for implementors::
 * Examples::
-* Appendices::
 @end menu
+@end ifnottex
 
 @c *******************************************************************
 @node Copying, Introduction to APRON, Top, Top
@@ -89,7 +88,7 @@ numerical variables.
 @c *******************************************************************
 
 The APRON library is copyright @copyright{} by the
-@uref{http://www.cri.ensmp.fr/apron/,APRON project}, and its partners.
+APRON project, and its partners.
 
 This license applies to all files distributed in the APRON library,
 including all source code, libraries, binaries, and documentation.
@@ -242,12 +241,12 @@ with their corresponding include files @file{ap_dimension.h},
 @file{stdlib.h} and @file{<stdarg.h>} will be required.
 
 Then, you should also include the header files of the underlying
-libraries you want to use it via APRON (for instance, @file{box.h},
+libraries you want to use via APRON (for instance, @file{box.h},
 @file{pk.h}, @file{ap_ppl.h}).
 
 All programs using APRON must link against the @file{libapron},
 @file{libmpfr} and @file{libgmp} libraries, and the underlying
-libraries you want to use it via APRON:
+libraries you want to use via APRON:
 @enumerate
 @item
 If some file @file{test.c} uses the POLKA library via APRON, the
@@ -565,7 +564,7 @@ The function @code{manager_alloc} sets the options of the
 common interface to their default value (see documentation).
 @item Initialization of the ``virtual'' table: we need to connect
   the generic functions of the interface (eg, @code{abstract_meet},
-  \ldots) to the actual functions of the library.
+  @enddots{}) to the actual functions of the library.
 @example
   funptr = man->funptr;
 
@@ -662,7 +661,7 @@ APRON managers (opaque type).
 @end deftp
 
 @deftp datatype ap_funid_t
-For identifying functions in excpetions, and when reading/setting
+For identifying functions in exceptions, and when reading/setting
 options attached to them.
 @example
 typedef enum ap_funid_t @{
@@ -2472,7 +2471,8 @@ Polynomial fraction with possibly interval coefficients, no rounding
 @end deftypefun
 
 @deftypefun bool ap_texpr1_is_scalar (ap_texpr1_t* @var{e})
-All coefficients are scalar (non-interval)@end deftypefun
+All coefficients are scalar (non-interval)
+@end deftypefun
 
 @c -------------------------------------------------------------------
 @node Operations on tree expressions of level 1,  , Tests on tree expressions of level 1, Tree expressions of level 1
@@ -4389,14 +4389,15 @@ the underlying library: they are not yet boxed with the manager in
 the type @code{ap_abstract0_t}.
 
 @c *******************************************************************
-@node Examples, Appendices, Functions for implementors, Top
+@node Examples, Functions for implementors, Top
 @chapter Examples
 @c *******************************************************************
+
+@ifhtml
 
 Look at the examples in the @samp{example} subdirectoy of the full
 distribution, or click on the links below:
 
-@ifhtml
 @uref{example1.c}
 
 @uref{mlexample1.ml}
@@ -4404,35 +4405,5 @@ distribution, or click on the links below:
 @uref{mlexample3.ml}
 @end ifhtml
 
-@c *******************************************************************
-@node Appendices,  , Examples, Top
-@appendix Appendices
-@c *******************************************************************
-
-@menu
-* C Datatype Index::
-* C Variable Index::
-* C Function Index::
-@end menu
-
-@c ===================================================================
-@node C Datatype Index, C Variable Index, Appendices, Appendices
-@appendixsec C Datatype Index
-@printindex tp
-@c ===================================================================
-@page
-@c ===================================================================
-@node C Variable Index, C Function Index, C Datatype Index, Appendices
-@appendixsec C Variable Index
-@c ===================================================================
-@printindex vr
-@page
-
-@c ===================================================================
-@node C Function Index,  , C Variable Index, Appendices
-@appendixsec C Function Index
-@c ===================================================================
-@printindex fn
-@page
 
 @bye

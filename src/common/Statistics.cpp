@@ -685,6 +685,11 @@ void Statistics::incNumTighteningsFromSymbolicBoundTightening( unsigned incremen
     _numTighteningsFromSymbolicBoundTightening += increment;
 }
 
+void Statistics::incNumTighteningsFromAbstractInterpretation(unsigned increment)
+{
+    _numTighteningsFromAbstractIntrepretation += increment;
+}
+
 //
 // Local Variables:
 // compile-command: "make -C ../.. "

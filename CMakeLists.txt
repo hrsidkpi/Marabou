@@ -247,34 +247,52 @@ endif()
 
 
 # Apron
-set(APRON_ROOT "${APRON_DIR}/installed")
+# set(APRON_ROOT "${APRON_DIR}/installed")
 
-if(NOT EXISTS "${APRON_DIR}")
-  execute_process(COMMAND ${TOOLS_DIR}/download_apron.sh)
-endif()
+# if(NOT EXISTS "${APRON_DIR}")
+#   execute_process(COMMAND ${TOOLS_DIR}/download_apron.sh)
+# endif()
 
 set(APRON_BOX_LIB boxD_debug)
-set(APRON_OCT_LIB octD_debug)
 set(APRON_T1P_LIB t1pD_debug)
+# set(APRON_PK_LIB polkaMPQ_debug)
 set(APRON_LIB_2 apron_debug)
 
 add_library(${APRON_BOX_LIB} SHARED IMPORTED)
-add_library(${APRON_OCT_LIB} SHARED IMPORTED)
+# add_library(${APRON_PK_LIB} SHARED IMPORTED)
 add_library(${APRON_T1P_LIB} SHARED IMPORTED)
+
 set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libboxD_debug.a)
-set_target_properties(${APRON_OCT_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/liboctD_debug.a)
-set_target_properties(${APRON_T1P_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libt1pD_debug.a)
+# set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libpolkaMPQ_debug.a)
+# set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libt1pD_debug.a)
+
+# set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/box/libboxD_debug.a)
+# set_target_properties(${APRON_OCT_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}//liboctD_debug.a)
+# set_target_properties(${APRON_PK_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/newpolka/libpolkaMPQ_debug.a)
+# set_target_properties(${APRON_T1P_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/taylor1plus/libt1pD_debug.a)
+
 list(APPEND LIBS ${APRON_BOX_LIB})
-list(APPEND LIBS ${APRON_OCT_LIB})
+# list(APPEND LIBS ${APRON_PK_LIB})
 list(APPEND LIBS ${APRON_T1P_LIB})
+
 target_include_directories(${APRON_BOX_LIB} INTERFACE ${APRON_DIR}/installed/include)
-target_include_directories(${APRON_OCT_LIB} INTERFACE ${APRON_DIR}/installed/include)
-target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/installed/include)
+# target_include_directories(${APRON_PK_LIB} INTERFACE ${APRON_DIR}/installed/include)
+# target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/installed/include)
+target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/taylor1plus)
+
+# target_include_directories(${APRON_BOX_LIB} INTERFACE ${APRON_DIR}/box)
+# target_include_directories(${APRON_PK_LIB} INTERFACE ${APRON_DIR}/newpolka)
+# target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/taylor1plus)
 
 add_library(${APRON_LIB_2} SHARED IMPORTED)
-set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libapron_debug.a)
+set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/isntalled/lib/libapron_debug.a)
 list(APPEND LIBS ${APRON_LIB_2})
 target_include_directories(${APRON_LIB_2} INTERFACE ${APRON_DIR}/installed/include)
+
+# add_library(${APRON_LIB_2} SHARED IMPORTED)
+# set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/apron/libapron_debug.a)
+# list(APPEND LIBS ${APRON_LIB_2})
+# target_include_directories(${APRON_LIB_2} INTERFACE ${APRON_DIR}/apron)
 
 
 list(APPEND LIBS gmp)

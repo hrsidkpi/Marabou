@@ -124,9 +124,15 @@ public:
         */
 
        /**
+        * with a box:
         * [0,3]      [-6,3]      [0, 3]      [0, 14]      [0,14]
         *        =>          =>          =>           =>
         * [0,2]      [0,11]      [0,11]      [-3,11]      [0,11]
+        * 
+        * In total (tightest possible, found using desmos on the entire input domain):
+        * [0,3]                  [0,12]
+        *        =>   ...    =>   
+        * [0,2]                  [0,11]
         **/
 
         // Create the layers
@@ -177,16 +183,54 @@ public:
         nlr.setNeuronVariable( NLR::NeuronIndex( 4, 1 ), 9 );
     }
 
-
-    void test_perform_abstract_interpretation() 
+    void populateNetworkPureLinear( NLR::NetworkLevelReasoner &nlr ) 
     {
-        NLR::NetworkLevelReasoner nlr;
-        populateNetworkSmall(nlr);
+        /*
+          x_0_0    x_1_0    x_2_0
+          x_0_1    x_1_1    x_2_1
+        */
 
+       /**
+        * with a box:
+        * [0,3]      [-6,3]      [-6, 14] 
+        *        =>          =>          
+        * [0,2]      [0,11]      [-3,17] 
+        * 
+        **/
 
-        MockTableau tableau;
+        // Create the layers
+        nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
 
-        // Initialize the bounds
+        nlr.addLayer( 1, NLR::Layer::WEIGHTED_SUM, 2 );
+        nlr.addLayer( 2, NLR::Layer::WEIGHTED_SUM, 2 );
+
+        nlr.addLayerDependency(0,1);
+        nlr.addLayerDependency(1,2);
+
+        // Set the weights and biases for the weighted sum layers
+        //layer 0 to 1
+        nlr.setWeight( 0, 0, 1, 0, 1 );
+        nlr.setWeight( 0, 0, 1, 1, 3 );
+        nlr.setWeight( 0, 1, 1, 0, -3 );
+        nlr.setWeight( 0, 1, 1, 1, 1 );
+        //layer 1 to 2
+        nlr.setWeight( 1, 0, 2, 0, 1 );
+        nlr.setWeight( 1, 0, 2, 1, -1 );
+        nlr.setWeight( 1, 1, 2, 0, 1 );
+        nlr.setWeight( 1, 1, 2, 1, 1 );
+
+        // Variable indexing
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 0 ), 0 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 1 ), 1 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 0 ), 2 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 1 ), 3 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 0 ), 4 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 1 ), 5 );
+    }
+
+    void set_tableau(MockTableau &tableau) {
         tableau.setLowerBound( 0, 0 );
         tableau.setUpperBound( 0, 3 );
         tableau.setLowerBound( 1, 0 );
@@ -196,57 +240,89 @@ public:
         for(unsigned neuron = 2; neuron <= 9; neuron++) {
             tableau.setLowerBound(neuron, -large ); tableau.setUpperBound(neuron, large );
         }
+    }
+
+    void test_perform_abstract_interpretation_pure_linear() 
+    {
+        NLR::NetworkLevelReasoner nlr;
+        populateNetworkPureLinear(nlr);
+
+        MockTableau tableau;
+        set_tableau(tableau);
         nlr.setTableau( &tableau );
 
-        // Initialize
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-
-        // Perform the tightening pass
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation() );
-        
-        
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(0) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
-        return;
-
-        std::cout << "\n==================================\nTesting abstract interpretation result\n\n\n\n" << std::endl;
 
         NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
-        std::cout << "Result AI address: " << ai << std::endl;
-        std::cout << "Result AI->AV address: " << ai->getCurrentAV() << std::endl;
-        
-        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
-        (void) val;
-        
-        std::cout << "Result AV address: " << val << std::endl;
 
-        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_4_0"));
+        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
+        
+        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_0"));
         double lb1 = bounds1->inf->val.dbl;
         double ub1 = bounds1->sup->val.dbl;
+        ap_interval_free(bounds1);
 
-        //TS_ASSERT_EQUALS(lb1, 0);
-        //TS_ASSERT_EQUALS(ub1, 14);
+        TS_ASSERT_EQUALS(lb1, -6);
+        TS_ASSERT_EQUALS(ub1, 14);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
 
+        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_1"));
+        double lb2 = bounds2->inf->val.dbl;
+        double ub2 = bounds2->sup->val.dbl;
+        ap_interval_free(bounds2);
+
+        TS_ASSERT_EQUALS(lb2, -3);
+        TS_ASSERT_EQUALS(ub2, 17);
+
+        if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
+        if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
+    }
+
+    void test_perform_abstract_interpretation() 
+    {
+        NLR::NetworkLevelReasoner nlr;
+        populateNetworkSmall(nlr);
+
+        MockTableau tableau;
+        set_tableau(tableau);
+        nlr.setTableau( &tableau );
+
+        TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(0) );
+        TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+
+        NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
+
+        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
+        
+        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_4_0"));
+        double lb1 = bounds1->inf->val.dbl;
+        double ub1 = bounds1->sup->val.dbl;
+        
         ap_interval_free(bounds1);
+
+        ai->printCurrentAv();
+        TS_ASSERT_EQUALS(lb1, 0.0);
+        TS_ASSERT_EQUALS(ub1, 14);
+
+        if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
+        if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
+
 
         ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_4_1"));
         double lb2 = bounds2->inf->val.dbl;
         double ub2 = bounds2->sup->val.dbl;
+        ap_interval_free(bounds2);
 
-        //TS_ASSERT_EQUALS(lb2, 0);
-        //TS_ASSERT_EQUALS(ub2, 11);
+        TS_ASSERT_EQUALS(lb2, 0);
+        TS_ASSERT_EQUALS(ub2, 11);
 
         if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
         if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
-
-        std::cout << "\n\nDone testing abstract interpretation result\n==================================\n\n\n\n\n" << std::endl;
-
-        std::cout << "\n\nCleaning up\n==================================\n\n\n\n\n" << std::endl;
-        ap_interval_free(bounds2);
-
-        std::cout << "\n\nDone cleaning up\n==================================\n\n\n\n\n" << std::endl;
     }
 
     void test_evaluate_relus()

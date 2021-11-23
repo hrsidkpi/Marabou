@@ -55,6 +55,10 @@ NetworkLevelReasoner::~NetworkLevelReasoner()
 void NetworkLevelReasoner::performAbstractInterpretation() {
     _currentAI->propagate();
 
+    std::cout << "Final abstract value: " << std::endl;
+    _currentAI->printCurrentAv();
+
+
     //Update the bounds
     for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
         Layer *layer = _layerIndexToLayer[i];
@@ -65,7 +69,7 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
             double lb = bounds->inf->val.dbl;
             double ub = bounds->sup->val.dbl;
 
-            std::cout<<"======================== (" << i << ", " << neuron << "): " << lb <<", " << ub << " ============================" << std::endl;
+            std::cout<<"======================== " << varname << " (" << i << ", " << neuron << "): " << lb <<", " << ub << " ============================" << std::endl;
 
             layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, lb, Tightening::LB));
             layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, ub, Tightening::UB));
@@ -78,7 +82,10 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
     }
 }
 
-void NetworkLevelReasoner::startAbstractInterpretation() {
+//Domain types:
+// 0 - box
+// 1 - oct
+void NetworkLevelReasoner::startAbstractInterpretation(int DomainType) {
     _currentAI = new AbstractInterpretorRaw(); 
 
     unsigned layerCount = _layerIndexToLayer.size();
@@ -96,7 +103,7 @@ void NetworkLevelReasoner::startAbstractInterpretation() {
         layerPointers[i] = _layerIndexToLayer[i];
     }
 
-    _currentAI->init(layerCount, layerPointers);
+    _currentAI->init(layerCount, layerPointers, DomainType);
     _currentAI->setInitialBounds(initialBounds);
 
     for(unsigned i = 0; i < _layerIndexToLayer[0]->getSize(); i++){
