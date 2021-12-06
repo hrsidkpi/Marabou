@@ -1869,7 +1869,7 @@ void Engine::performAbstractInterpretationTightening()
 
     _networkLevelReasoner->obtainCurrentBounds();
     
-    _networkLevelReasoner->startAbstractInterpretation(0);
+    _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE);
     _networkLevelReasoner->performAbstractInterpretation();
     
     List<Tightening> tightenings;

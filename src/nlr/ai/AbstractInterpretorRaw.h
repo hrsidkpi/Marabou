@@ -7,6 +7,7 @@
 #include "AbstractValueRaw.h"
 #include "Layer.h"
 #include "AbstractEnvironmentRaw.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/AbstractDomainEnum.h"
 
 
 namespace NLR {
@@ -27,6 +28,9 @@ public:
     void setInitialBounds(double **bounds) {
         _currentAV = new AbstractValueRaw(_env, 0);
         _currentAV->initAsFirstLayer(bounds);
+
+        printCurrentAv();
+        printCurrentBounds();
     }
 
     void propagate() {
@@ -50,8 +54,25 @@ public:
             //Delete the previous (now unused) value
             delete temp;
 
+            //print the bounds
             printCurrentAv();
+            printCurrentBounds();
         }        
+    }
+
+    void printCurrentBounds() {
+        for(unsigned i = 0; i < _env->_numberOfLayers; i++) {
+            Layer *layer = _env->_layers[i];
+            for(unsigned neuron = 0; neuron < layer->getSize(); neuron++) {
+                char varname[20];
+                sprintf(varname, "x_%d_%d", i,  neuron);
+                ap_interval_t *bounds = ap_abstract1_bound_variable(getEnvironment()->_manager, getCurrentAV()->_ap_value, const_cast<char *>(varname));
+                double lb = bounds->inf->val.dbl;
+                double ub = bounds->sup->val.dbl;
+                std::cout<<"======================== " << varname << " (" << i << ", " << neuron << "): " << lb <<", " << ub << " ============================" << std::endl;
+                ap_interval_free(bounds);
+            }
+        }
     }
 
     void printCurrentAv() {

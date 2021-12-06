@@ -16,6 +16,7 @@ endmacro()
 
 network_level_reasoner_add_unit_test(DeepPolyAnalysis)
 network_level_reasoner_add_unit_test(NetworkLevelReasoner)
+network_level_reasoner_add_unit_test(AbstractInterpretation)
 network_level_reasoner_add_unit_test(WsLayerElimination)
 network_level_reasoner_add_unit_test(ParallelSolver)
 

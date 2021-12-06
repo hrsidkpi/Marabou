@@ -9,6 +9,7 @@
 #include "t1p.h"
 #include "Layer.h"
 #include "pkeq.h"
+#include "AbstractDomainEnum.h"
 
 namespace NLR {
 
@@ -43,18 +44,22 @@ private:
 
 
     void allocate(int domainType) {
-        if (domainType == 0) {
+        if (domainType == ABSTRACT_DOMAIN_BOX) {
             std::cout << "using box (domain type 0)" << std::endl;
             _manager = box_manager_alloc();
         }
-        else if(domainType == 1) {
+        else if(domainType == ABSTRACT_DOMAIN_OCT) {
             std::cout << "using oct (domain type 1)" << std::endl;
             //_manager = oct_manager_alloc();
+            std::cout << "domain type oct used but not implemented, use another domain" << std::endl;
         }
-        else if(domainType == 2) {
+        else if(domainType == ABSTRACT_DOMAIN_POLY) {
             std::cout << "using pk/t1p (domain type 2)" << std::endl;
-            //_manager = t1p_manager_alloc();
             _manager = pk_manager_alloc(1);
+        }
+        else if(domainType == ABSTRACT_DOMAIN_ZONOTOPE) {
+            std::cout << "using pk/t1p (domain type 2)" << std::endl;
+            _manager = t1p_manager_alloc();
         }
         else {
             std::cout << "domain type " << domainType << " not found, defaulting to box." << std::endl;
