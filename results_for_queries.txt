@@ -1,0 +1,18 @@
+with AI every split:
+-------------------
+net 1 property 1: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
+net 1 property 2: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
+net 1 property 3: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
+net 1 property 4: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
+
+
+with AI on at the beggining:
+----------------------------
+net 1 property 1: unsat
+
+net 1 property 2: unsat, 68698 visited states, 34348 splits, total time elapsed 04:54:14
+
+net 1 property 3: unsat, long time, about 4 hours, didnt document
+
+without AI:
+-----------

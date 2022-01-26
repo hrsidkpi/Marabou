@@ -31,54 +31,91 @@ public:
         _ap_value = NULL;
     }
 
-    void initAsFirstLayer(double **firstLayerBounds) {
+    void initAsFirstLayer(double ***firstLayerBounds) {
         if (_layerIndex != 0)
             std::cerr << "Called AbstractValue::initAsFirstLayer on non-first-layer" << std::endl;
 
+        unsigned number_of_neurons = 0;
+        for(unsigned layer = 0; layer < _manager->_numberOfLayers; layer++) {
+            number_of_neurons+=_manager->_layers[layer]->getSize();
+        }
+        std::cout << "number of neurons: " << number_of_neurons << std::endl;
 
-        ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, _manager->_layers[0]->getSize()*2);
+        ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, number_of_neurons*2);
 
-        for(unsigned i = 0; i < _manager->_layers[0]->getSize(); i++) {
-            
+        char **varNames = new char*[number_of_neurons];
+        
+        unsigned currentIndex = 0;
+        unsigned currentNeuron = 0;
+        for(unsigned layer = 0; layer < _manager->_numberOfLayers; layer++) {
+            for(unsigned i = 0; i < _manager->_layers[layer]->getSize(); i++) {
 
-            char varName[20];
-            sprintf(varName, "x_0_%d", i);
+                varNames[currentNeuron] = new char[30];
+                sprintf(varNames[currentNeuron], "x_%d_%d",layer, i);
 
+                double lb = firstLayerBounds[layer][i][0];
+                double ub = firstLayerBounds[layer][i][1];
 
-            ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
-            ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
-            ap_lincons1_set_list(&consLb,
-                AP_COEFF_S_INT, 1, varName,
-                AP_CST_S_DOUBLE, -firstLayerBounds[i][0],
-                AP_END);
-            ap_lincons1_array_set(&constraintArray, i*2, &consLb);
+                std::cout << lb << " < " << varNames[currentNeuron] << " < " << ub << std::endl;
 
+                ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+                ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
+                ap_lincons1_set_list(&consLb,
+                    AP_COEFF_S_INT, 1, varNames[currentNeuron],
+                    AP_CST_S_DOUBLE, -lb,
+                    AP_END);
+                ap_lincons1_array_set(&constraintArray, currentIndex, &consLb);
+                currentIndex++;
 
-            ap_linexpr1_t exprUb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
-            ap_lincons1_t consUb = ap_lincons1_make(AP_CONS_SUPEQ, &exprUb, NULL);
-            ap_lincons1_set_list(&consUb,
-                AP_COEFF_S_INT, -1, varName,
-                AP_CST_S_DOUBLE, firstLayerBounds[i][1],
-                AP_END);
-            ap_lincons1_array_set(&constraintArray, i*2+1, &consUb);
+                ap_linexpr1_t exprUb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+                ap_lincons1_t consUb = ap_lincons1_make(AP_CONS_SUPEQ, &exprUb, NULL);
+                ap_lincons1_set_list(&consUb,
+                    AP_COEFF_S_INT, -1, varNames[currentNeuron],
+                    AP_CST_S_DOUBLE, ub,
+                    AP_END);
+                ap_lincons1_array_set(&constraintArray, currentIndex, &consUb);
+                currentIndex++;
+                
+                currentNeuron++;
+            }
         }
 
+        std::cout << "Creating a new abstract1_t" << std::endl;
         _ap_value = new ap_abstract1_t();
 
+        std::cout << "Creating the abstract for the array" << std::endl;
         ap_abstract1_t t = ap_abstract1_of_lincons_array(_manager->_manager, _manager->_env, &constraintArray);
+
+        std::cout << "copying the value" << std::endl;
         *_ap_value = ap_abstract1_copy(_manager->_manager, &t);
+
+        std::cout << "clearing manager" << std::endl;
         ap_abstract1_clear(_manager->_manager, &t);
         
+        std::cout << "clearing array" << std::endl;
         ap_lincons1_array_clear(&constraintArray);
+
+        for(unsigned i = 0; i < number_of_neurons; i++)
+            delete[] varNames[i];
+        delete[] varNames;
         
+    }
+
+    void setLayerIndex(unsigned layerIndex) {
+        _layerIndex = layerIndex;
     }
 
 
     AbstractValueRaw *performAffineTransformation(const double *weightsMatrix, double *bias) {
 
+
+        std::cout << "getting sizes" << std::endl;
         unsigned currLayerSize = _manager->_layers[_layerIndex]->getSize();
         unsigned nextLayerSize = _manager->_layers[_layerIndex + 1]->getSize();
 
+        std::cout << "sizes: " << currLayerSize << ", " << nextLayerSize << std::endl;
+
+        std::cout << "making array..." << std::endl;
         ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, nextLayerSize);
         
         char *varName = new char[20];
@@ -87,10 +124,7 @@ public:
             ap_linexpr1_t expr = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, 1);
             ap_lincons1_t cons = ap_lincons1_make(AP_CONS_EQ, &expr, NULL);
 
-
-            sprintf(varName, "x_%d_%d", _layerIndex+1, i);
-            std::cout << varName << " = ";
-            
+            sprintf(varName, "x_%d_%d", _layerIndex+1, i);            
             ap_lincons1_set_list( &cons,
                                   AP_COEFF_S_INT, -1, varName,
                                   AP_CST_S_DOUBLE, bias[i],
@@ -100,14 +134,10 @@ public:
                 char jVarName[20];
                 sprintf(jVarName, "x_%d_%d", _layerIndex, j);
                 
-                std::cout << weight << "*" << jVarName << " + "; 
-
                 ap_lincons1_set_list( &cons,
                                       AP_COEFF_S_DOUBLE, weight, jVarName,
                                       AP_END);
-            }
-            std::cout << std::endl;
-            
+            }            
             ap_lincons1_array_set(&constraintArray, i, &cons);
         }
 

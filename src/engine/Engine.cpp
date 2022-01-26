@@ -204,13 +204,13 @@ bool Engine::solve( unsigned timeoutInSeconds )
 
             if ( splitJustPerformed )
             {
-                do
-                {
-                    performAbstractInterpretationTightening();
-                    //performSymbolicBoundTightening();
-                }
-                while ( applyAllValidConstraintCaseSplits() );
-                splitJustPerformed = false;
+                performAbstractInterpretationTightening();
+                //do
+                //{
+                //    performSymbolicBoundTightening();
+                //}
+                //while ( applyAllValidConstraintCaseSplits() );
+                //splitJustPerformed = false;
             }
 
             // Perform any SmtCore-initiated case splits
@@ -1113,16 +1113,19 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
         if ( preprocess )
         {
 
-            std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->dumpBounds();
-            std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->startAbstractInterpretation(0);
+            //std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
+            //_networkLevelReasoner->dumpBounds();
+            std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;   
+            _networkLevelReasoner->obtainCurrentBounds();         
+            _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE);
             std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
             _networkLevelReasoner->performAbstractInterpretation();
-            std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->dumpBounds();
+            //std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
+            //_networkLevelReasoner->dumpBounds();
 
-            performSymbolicBoundTightening();
+            std::cout << "done with first abstract interpretation";
+
+            //performSymbolicBoundTightening();
             performSimulation();
             performMILPSolverBoundedTightening();
         }
@@ -1865,12 +1868,16 @@ void Engine::performSimulation()
 
 void Engine::performAbstractInterpretationTightening() 
 {
+    //return;
     std::cout << "performing AI step" << std::endl;
 
     _networkLevelReasoner->obtainCurrentBounds();
     
+    std::cout << "Initializing AI..." << std::endl;
     _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE);
+    std::cout << "Performing AI..." << std::endl;
     _networkLevelReasoner->performAbstractInterpretation();
+    std::cout << "Done AI, setting new constraints..." << std::endl;
     
     List<Tightening> tightenings;
     _networkLevelReasoner->getConstraintTightenings( tightenings );
@@ -1893,7 +1900,8 @@ void Engine::performAbstractInterpretationTightening()
             ++numTightenedBounds;
         }
     }
-    _statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
+    //_statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
+    //_networkLevelReasoner->clearAbstractInterpretation();
     std::cout << "done performing AI step." << std::endl;
 
 }

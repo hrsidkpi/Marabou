@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_STATIC_MARABOU "Build static Marabou binary" OFF)
-option(BUILD_PYTHON "Build Python" ON)
+option(BUILD_PYTHON "Build Python" OFF)
 option(FORCE_PYTHON_BUILD "Build python even if there is only python32" OFF)
 option(RUN_UNIT_TEST "run unit tests on build" ON)
 option(RUN_REGRESS_TEST "run regression tests on build" OFF)
@@ -258,8 +258,8 @@ set(APRON_POLKA_LIB polkaD_debug)
 set(APRON_BOX_LIB boxD_debug)
 set(APRON_LIB apron_debug)
 
-add_library(${APRON_T1P_LIB} SHARED IMPORTED)
-set_target_properties(${APRON_T1P_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libt1pD_debug.a)
+add_library(${APRON_T1P_LIB} SHARED IMPORTED) 
+set_target_properties(${APRON_T1P_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libt1pD.a)
 list(APPEND LIBS ${APRON_T1P_LIB})
 target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/installed/include)
 
@@ -283,47 +283,30 @@ list(APPEND LIBS gmp)
 list(APPEND LIBS mpfr)
 
 
-# # set(APRON_PK_LIB polkaMPQ_debug)
 
-# add_library(${APRON_BOX_LIB} SHARED IMPORTED)
-# # add_library(${APRON_PK_LIB} SHARED IMPORTED)
-# add_library(${APRON_T1P_LIB} SHARED IMPORTED)
+# LAPACK
 
-# set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libboxD_debug.a)
-# # set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libpolkaMPQ_debug.a)
-# # set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/installed/lib/libt1pD_debug.a)
+# set(LAPACK_DIR "${TOOLS_DIR}/lapack-3.10.0")
+# add_library(LAPACK_LIB SHARED IMPORTED)
+# set_target_properties(LAPACK_LIB PROPERTIES IMPORTED_LOCATION ${LAPACK_DIR}/libtmglib.a)
+# set_target_properties(LAPACK_LIB PROPERTIES IMPORTED_LOCATION ${LAPACK_DIR}/librefblas.a)
+# set_target_properties(LAPACK_LIB PROPERTIES IMPORTED_LOCATION ${LAPACK_DIR}/liblapack.a)
+# target_include_directories(LAPACK_LIB INTERFACE ${LAPACK_DIR}/INSTALL)
+# target_include_directories(LAPACK_LIB INTERFACE ${LAPACK_DIR}/LAPACKE/include)
+# list(APPEND LIBS LAPACK_LIB)
 
-# # set_target_properties(${APRON_BOX_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/box/libboxD_debug.a)
-# # set_target_properties(${APRON_OCT_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}//liboctD_debug.a)
-# # set_target_properties(${APRON_PK_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/newpolka/libpolkaMPQ_debug.a)
-# # set_target_properties(${APRON_T1P_LIB} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/taylor1plus/libt1pD_debug.a)
+find_package(BLAS)
+find_package(LAPACK)
+set(LAPACKBLAS_LIB ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+target_link_libraries(${MARABOU_LIB} ${LAPACKBLAS_LIB})
 
-# list(APPEND LIBS ${APRON_BOX_LIB})
-# # list(APPEND LIBS ${APRON_PK_LIB})
-# list(APPEND LIBS ${APRON_T1P_LIB})
-
-# target_include_directories(${APRON_BOX_LIB} INTERFACE ${APRON_DIR}/installed/include)
-# # target_include_directories(${APRON_PK_LIB} INTERFACE ${APRON_DIR}/installed/include)
-# # target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/installed/include)
-# target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/taylor1plus)
-
-# # target_include_directories(${APRON_BOX_LIB} INTERFACE ${APRON_DIR}/box)
-# # target_include_directories(${APRON_PK_LIB} INTERFACE ${APRON_DIR}/newpolka)
-# # target_include_directories(${APRON_T1P_LIB} INTERFACE ${APRON_DIR}/taylor1plus)
-
-# add_library(${APRON_LIB_2} SHARED IMPORTED)
-# set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/isntalled/lib/libapron_debug.a)
-# list(APPEND LIBS ${APRON_LIB_2})
-# target_include_directories(${APRON_LIB_2} INTERFACE ${APRON_DIR}/installed/include)
-
-# # add_library(${APRON_LIB_2} SHARED IMPORTED)
-# # set_target_properties(${APRON_LIB_2} PROPERTIES IMPORTED_LOCATION ${APRON_DIR}/apron/libapron_debug.a)
-# # list(APPEND LIBS ${APRON_LIB_2})
-# # target_include_directories(${APRON_LIB_2} INTERFACE ${APRON_DIR}/apron)
-
-
-# list(APPEND LIBS gmp)
-# list(APPEND LIBS mpfr)
+# Armadillo
+set(ARNADILLO_DIR "${TOOLS_DIR}/armadillo-10.7.5")
+add_library(ARMADILLO_LIB SHARED IMPORTED)
+set_target_properties(ARMADILLO_LIB PROPERTIES IMPORTED_LOCATION ${ARNADILLO_DIR}/libarmadillo.so)
+target_include_directories(ARMADILLO_LIB INTERFACE ${ARNADILLO_DIR}/include/armadillo_bits)
+target_include_directories(ARMADILLO_LIB INTERFACE ${ARNADILLO_DIR}/include/)
+list(APPEND LIBS ARMADILLO_LIB)
 
 
 

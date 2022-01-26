@@ -126,6 +126,7 @@ public:
 
     void performAbstractInterpretation();
     void startAbstractInterpretation(int domainType);
+    void clearAbstractInterpretation();
 
     void receiveTighterBound( Tightening tightening );
     void getConstraintTightenings( List<Tightening> &tightenings );

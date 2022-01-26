@@ -17,6 +17,8 @@
 
 #ifdef ENABLE_OPENBLAS
 #include "cblas.h"
+#include "armadillo.h"
+
 void matrixMultiplication( const double *matA, const double *matB, double *matC,
                            unsigned rowsA, unsigned columnsA,
                            unsigned columnsB )

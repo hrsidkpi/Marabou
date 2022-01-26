@@ -21,8 +21,14 @@
 #include "InputQuery.h"
 #include "Layer.h"
 #include "NetworkLevelReasoner.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/Halfspace.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/Polyhedron.h"
 #include "Tightening.h"
 #include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/AbstractDomainEnum.h"
+#include "armadillo.h"
+
+
+using namespace arma;
 
 
 class MockForNetworkLevelReasoner
@@ -115,6 +121,30 @@ public:
         nlr.setNeuronVariable( NLR::NeuronIndex( 5, 1 ), 13 );
     }
 
+    void populateNetworkTiny(NLR::NetworkLevelReasoner &nlr)
+    {
+        // Create the layers
+        nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
+        nlr.addLayer( 1, NLR::Layer::WEIGHTED_SUM, 2 );
+
+
+        nlr.addLayerDependency(0,1);
+
+        // Set the weights and biases for the weighted sum layers
+        //layer 0 to 1
+        nlr.setWeight( 0, 0, 1, 0, 1 );
+        nlr.setWeight( 0, 0, 1, 1, 0 );
+        nlr.setWeight( 0, 1, 1, 0, 1 );
+        nlr.setWeight( 0, 1, 1, 1, 1 );
+
+        // Variable indexing
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 0 ), 0 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 1 ), 1 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 0 ), 2 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 1 ), 3 );
+    }
+
     void populateNetworkSmall( NLR::NetworkLevelReasoner &nlr ) 
     {
         /*
@@ -165,13 +195,13 @@ public:
         // Set the weights and biases for the weighted sum layers
         //layer 0 to 1
         nlr.setWeight( 0, 0, 1, 0, 1 );
-        nlr.setWeight( 0, 0, 1, 1, 3 );
-        nlr.setWeight( 0, 1, 1, 0, -3 );
+        nlr.setWeight( 0, 0, 1, 1, 0 );
+        nlr.setWeight( 0, 1, 1, 0, 1 );
         nlr.setWeight( 0, 1, 1, 1, 1 );
         //layer 1 to 2
         nlr.setWeight( 2, 0, 3, 0, 1 );
-        nlr.setWeight( 2, 0, 3, 1, -1 );
-        nlr.setWeight( 2, 1, 3, 0, 1 );
+        nlr.setWeight( 2, 0, 3, 1, 0 );
+        nlr.setWeight( 2, 1, 3, 0, -1 );
         nlr.setWeight( 2, 1, 3, 1, 1 );
 
         //Set the RELU sources
@@ -206,9 +236,9 @@ public:
 
        /**
         * with a box:
-        * [0,3]      [-6,3]      [-6, 14] 
+        * [0,3]      [0,5]      [-2, 5] 
         *        =>          =>          
-        * [0,2]      [0,11]      [-3,17] 
+        * [0,2]      [0,2]      [0,2] 
         * 
         **/
 
@@ -224,13 +254,13 @@ public:
         // Set the weights and biases for the weighted sum layers
         //layer 0 to 1
         nlr.setWeight( 0, 0, 1, 0, 1 );
-        nlr.setWeight( 0, 0, 1, 1, 3 );
-        nlr.setWeight( 0, 1, 1, 0, -3 );
+        nlr.setWeight( 0, 0, 1, 1, 0 );
+        nlr.setWeight( 0, 1, 1, 0, 1 );
         nlr.setWeight( 0, 1, 1, 1, 1 );
         //layer 1 to 2
         nlr.setWeight( 1, 0, 2, 0, 1 );
-        nlr.setWeight( 1, 0, 2, 1, -1 );
-        nlr.setWeight( 1, 1, 2, 0, 1 );
+        nlr.setWeight( 1, 0, 2, 1, 0 );
+        nlr.setWeight( 1, 1, 2, 0, -1 );
         nlr.setWeight( 1, 1, 2, 1, 1 );
 
         // Variable indexing
@@ -256,12 +286,9 @@ public:
         }
     }
 
-
+                                
     void test_perform_abstract_interpretation_pure_linear() 
     {
-
-        return;
-
         std::cout << "!!!test_perform_abstract_interpretation_pure_linear()!!!" << std::endl;
 
         NLR::NetworkLevelReasoner nlr;
@@ -272,20 +299,22 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_POLY) );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_BOX) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
 
-        NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
 
+        NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
         ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
         
+        ai->printCurrentAv();
+
         ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_0"));
         double lb1 = bounds1->inf->val.dbl;
         double ub1 = bounds1->sup->val.dbl;
         ap_interval_free(bounds1);
 
-        TS_ASSERT_EQUALS(lb1, -6);
-        TS_ASSERT_EQUALS(ub1, 14);
+        TS_ASSERT_EQUALS(lb1, 2);
+        TS_ASSERT_EQUALS(ub1, 5);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
@@ -295,19 +324,16 @@ public:
         double ub2 = bounds2->sup->val.dbl;
         ap_interval_free(bounds2);
 
-        TS_ASSERT_EQUALS(lb2, -3);
-        TS_ASSERT_EQUALS(ub2, 17);
+        TS_ASSERT_EQUALS(lb2, 0);
+        TS_ASSERT_EQUALS(ub2, 2);
 
         if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
         if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
-
-        TS_ASSERT(false);
     }
 
     void test_perform_abstract_interpretation() 
     {
         std::cout << "!!!test_perform_abstract_interpretation()!!!" << std::endl;
-        return;
 
         NLR::NetworkLevelReasoner nlr;
         populateNetworkSmall(nlr);
@@ -317,14 +343,14 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_POLY) );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_BOX) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
 
         NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
 
         ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
-        
-        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_4_0"));
+                                                                                                                                                                                                 
+        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_1_0"));
         double lb1 = bounds1->inf->val.dbl;
         double ub1 = bounds1->sup->val.dbl;
         
@@ -332,23 +358,188 @@ public:
 
         ai->printCurrentAv();
         TS_ASSERT_EQUALS(lb1, 0.0);
-        TS_ASSERT_EQUALS(ub1, 14);
+        TS_ASSERT_EQUALS(ub1, 5);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
 
 
-        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_4_1"));
+        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_1_1"));
         double lb2 = bounds2->inf->val.dbl;
         double ub2 = bounds2->sup->val.dbl;
         ap_interval_free(bounds2);
 
         TS_ASSERT_EQUALS(lb2, 0);
-        TS_ASSERT_EQUALS(ub2, 11);
+        TS_ASSERT_EQUALS(ub2, 2);
 
         if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
         if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
-
-        TS_ASSERT(false);
     }
+
+    void test_halfspaces() 
+    {
+        double *w = new double[2];
+        w[0] = 1;
+        w[1] = -1;
+        NLR::Halfspace *a = new NLR::Halfspace(2, w, 1);
+
+        a->print();
+
+
+        double linear_transformation[4];
+        linear_transformation[0] = 1;
+        linear_transformation[1] = 0;
+        linear_transformation[2] = 1;
+        linear_transformation[3] = 1;
+        mat linear_trans_mat(linear_transformation, 2, 2);
+
+        double translation[2];
+        translation[0] = 0;
+        translation[1] = 0;
+        mat translate_trans_mat(translation, 2, 1);
+
+        bool sol = a->applyAffineTransformation(linear_trans_mat, translate_trans_mat);
+        if(sol) std::cout << "invertible!" << std::endl;
+        if(!sol) std::cout << "not invertible!" << std::endl;
+        a->print();
+
+        delete a;
+    }
+
+    void test_poly_under_approximation() 
+    {
+
+        double *w1 = new double[2] {1, 0};
+        double *w2 = new double[2] {-1, 0};
+        double *w3 = new double[2] {0, 1};
+        double *w4 = new double[2] {0, -1};
+
+        NLR::Halfspace *left = new NLR::Halfspace(2, w1, -1);
+        NLR::Halfspace *right = new NLR::Halfspace(2, w2, 0);
+        NLR::Halfspace *top = new NLR::Halfspace(2, w3, -1);
+        NLR::Halfspace *bottom = new NLR::Halfspace(2, w4, 0);
+
+        std::list<NLR::Halfspace*> halfspaces = {left, right, top, bottom };
+        NLR::Polyhedron *poly = new NLR::Polyhedron(2, halfspaces);
+
+        double *v1 = new double[2] {-2, 1};
+        double *v2 = new double[2] {0.5, 0.7};
+        TS_ASSERT(!poly->containsVertex(v1));
+        TS_ASSERT(poly->containsVertex(v2));
+
+        std::cout << "before: " << std::endl;
+        poly->print();
+
+        double linear_transformation[4];
+        linear_transformation[0] = 1;
+        linear_transformation[1] = 0;
+        linear_transformation[2] = 1;
+        linear_transformation[3] = 1;
+        mat linear_trans_mat(linear_transformation, 2, 2);
+
+        double translation[2];
+        translation[0] = -0.5;
+        translation[1] = 0;
+        mat translate_trans_mat(translation, 2, 1);
+
+        poly->applyAffineTransformation(linear_trans_mat, translate_trans_mat);
+        poly->applyRelu();
+
+        std::cout << "\n\nafter: " << std::endl;
+        poly->print();
+
+        delete[] v1;
+        delete[] v2;
+        delete poly;
+    }
+
+    void test_multi_abstract_interpretation()
+    {
+        NLR::NetworkLevelReasoner nlr;
+        populateNetworkSmall(nlr);
+
+        MockTableau tableau;
+        set_tableau(tableau, 5);
+        nlr.setTableau( &tableau );
+
+        for(unsigned iter = 0; iter < 10; ++iter)
+        {
+            std::cout << "!!!test_perform_abstract_interpretation() iteration!!!" << std::endl;
+
+            TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+            TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
+            TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+        }
+    }
+
+
+    void populateNetworkLarge( NLR::NetworkLevelReasoner &nlr ) 
+    {
+        // Create the layers
+        nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
+
+        nlr.addLayer( 1, NLR::Layer::WEIGHTED_SUM, 2 );
+        nlr.addLayer( 2, NLR::Layer::RELU, 2 );
+        nlr.addLayer( 3, NLR::Layer::WEIGHTED_SUM, 2 );
+        nlr.addLayer( 4, NLR::Layer::RELU, 2 );
+
+        nlr.addLayerDependency(0,1);
+        nlr.addLayerDependency(1,2);
+        nlr.addLayerDependency(2,3);
+        nlr.addLayerDependency(3,4);
+
+        // Set the weights and biases for the weighted sum layers
+        //layer 0 to 1
+        nlr.setWeight( 0, 0, 1, 0, 1 );
+        nlr.setWeight( 0, 0, 1, 1, 0 );
+        nlr.setWeight( 0, 1, 1, 0, 1 );
+        nlr.setWeight( 0, 1, 1, 1, 1 );
+        //layer 1 to 2
+        nlr.setWeight( 2, 0, 3, 0, 1 );
+        nlr.setWeight( 2, 0, 3, 1, 0 );
+        nlr.setWeight( 2, 1, 3, 0, -1 );
+        nlr.setWeight( 2, 1, 3, 1, 1 );
+
+        //Set the RELU sources
+        nlr.addActivationSource( 1, 0, 2, 0 );
+        nlr.addActivationSource( 1, 1, 2, 1 );
+        nlr.addActivationSource( 3, 0, 4, 0 );
+        nlr.addActivationSource( 3, 1, 4, 1 );
+
+        // Variable indexing
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 0 ), 0 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 1 ), 1 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 0 ), 2 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 1 ), 3 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 0 ), 4 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 1 ), 5 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 3, 0 ), 6 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 3, 1 ), 7 );
+
+        nlr.setNeuronVariable( NLR::NeuronIndex( 4, 0 ), 8 );
+        nlr.setNeuronVariable( NLR::NeuronIndex( 4, 1 ), 9 );
+    }
+
+    void test_abstract_interpretation_large()
+    {
+        NLR::NetworkLevelReasoner nlr;
+        populateNetworkLarge(nlr);
+
+        MockTableau tableau;
+        set_tableau(tableau, 5);
+        nlr.setTableau( &tableau );
+
+        for(unsigned iter = 0; iter < 10; ++iter)
+        {
+            std::cout << "!!!test_perform_abstract_interpretation() iteration!!!" << std::endl;
+
+            TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+            TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
+            TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+        }
+    }
+
 };

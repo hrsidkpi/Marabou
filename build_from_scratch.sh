@@ -4,6 +4,7 @@ read -p "Continue (y/n)?" CONT
 if [ "$CONT" = "y" ]; then
     echo "deleting current installation..." 
     rm -r build
+    rm CMakeCache.txt
     mkdir build
     cd build    
     cmake ..    

@@ -6,11 +6,14 @@
 //#include "oct.h"
 #include "box.h"
 #include "pk.h"
-#include "t1p.h"
 #include "Layer.h"
 #include "pkeq.h"
 #include "AbstractDomainEnum.h"
 #include "Halfspace.h"
+#include "armadillo.h"
+#include <list>
+
+using namespace arma;
 
 namespace NLR {
 
@@ -22,25 +25,37 @@ public:
         
     }
 
-    PolyAbstractApproximator(Halfspace *halfspaces) {
+    PolyAbstractApproximator(std::list<Halfspace*> halfspaces) {
         this->halfspaces = halfspaces;
-        dimension = 0; //len(halfspaces)
+        dimension = halfspaces[0]->dim;
     }
 
-    void applyAffineTransformation(MATRIX linear_part, VECTOR translation_part) {
-
+    void applyAffineTransformation(mat linear_part, mat translation_part) {
+        for(Halfspace *hs : halfspaces) {
+            hs->applyAffineTransformation(linear_part, translation_part)
+        }
+        dimension = translation_part.n_rows;
     }
 
     void applyRelu() {
-
+        for(unsigned d = 0; d < dimension; d++) {
+            double *weights = new double[dimension];
+            for(unsigned i = 0; i < dimension; i++) {
+                if(i == d)
+                    weights[i] = 1;
+                else
+                    weights[i] = 0;
+            }
+            halfspaces.push_front(new Halfsapce(dimension, weights, 0));
+        }
     }
 
-    MATRIX getBounds() {
-
+    mat getBounds() {
+        return NULL;
     }
 
     bool containsPoint(VECTOR vertex) {
-        return true;
+        bool found = 
     }
 
     double getHyperVolume() {
@@ -50,7 +65,8 @@ public:
 
 private:
 
-    Halfspace *halfspaces;
+    std::list<Halfspace*> halfspaces;
+
     unsigned dimension;
 
 };
