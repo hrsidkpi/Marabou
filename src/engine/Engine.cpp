@@ -1114,6 +1114,14 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
         if ( preprocess )
         {
 
+
+            //performSymbolicBoundTightening();
+            performSimulation();
+            performMILPSolverBoundedTightening();
+
+
+            /**
+
             //std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
             //_networkLevelReasoner->dumpBounds();
             std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;   
@@ -1125,10 +1133,8 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
             //_networkLevelReasoner->dumpBounds();
 
             std::cout << "done with first abstract interpretation";
+            **/
 
-            //performSymbolicBoundTightening();
-            performSimulation();
-            performMILPSolverBoundedTightening();
         }
 
         if ( Options::get()->getBool( Options::DUMP_BOUNDS ) )
@@ -1870,7 +1876,7 @@ void Engine::performSimulation()
 
 void Engine::performAbstractInterpretationTightening() 
 {
-    return;
+    //return;
 
     std::cout << "performing AI step" << std::endl;
 
@@ -1908,6 +1914,8 @@ void Engine::performAbstractInterpretationTightening()
     std::cout << "done performing AI step." << std::endl;
 
 }
+
+
 
 void Engine::performSymbolicBoundTightening()
 {
