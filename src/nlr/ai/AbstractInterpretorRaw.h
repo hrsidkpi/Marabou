@@ -104,7 +104,6 @@ public:
 
             if(layer->getLayerType() == Layer::RELU) {
                 std::cout << "Performing ReLu" << std::endl;
-                printCurrentAv();
                 _currentAV = _currentAV->performRelu();
 
                 if(_useUnderApprox)
@@ -118,7 +117,6 @@ public:
             //print the bounds
             //printCurrentAv();
         }      
-        printCurrentAv();  
         printCurrentBounds();
     }
 

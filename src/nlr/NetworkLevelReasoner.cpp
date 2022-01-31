@@ -68,6 +68,9 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
             double lb = bounds->inf->val.dbl;
             double ub = bounds->sup->val.dbl;
 
+            if(lb < -1000000) lb = -1000000;
+            if(ub > 1000000) ub = 1000000;
+
             layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, lb, Tightening::LB));
             layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, ub, Tightening::UB));
 
@@ -83,7 +86,7 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
 void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
     if(_currentAI != NULL) delete _currentAI;
     _currentAI = new AbstractInterpretorRaw();
-    _currentAI->setUseUnderApproximation(true);
+    _currentAI->setUseUnderApproximation(false);
 
     unsigned layerCount = _layerIndexToLayer.size();
     

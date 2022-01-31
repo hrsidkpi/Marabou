@@ -69,6 +69,7 @@ public:
         for(const auto& h : halfspaces) h->print();
     }
 
+
     unsigned dim;
 
 private:

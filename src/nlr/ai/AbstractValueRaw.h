@@ -212,8 +212,6 @@ public:
 
 
     AbstractValueRaw *performReluOnNeuron(unsigned neuron) {
-        std::cout << "neuron " << neuron << std::endl;
-
         char n1[20];
         char n2[20];
         sprintf(n1, "x_%d_%d", _layerIndex, neuron);
