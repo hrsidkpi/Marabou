@@ -31,6 +31,7 @@
 #include "ReluConstraint.h"
 #include "SignConstraint.h"
 #include <cstring>
+#include <cmath>
 
 namespace NLR {
 
@@ -79,21 +80,27 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
 }
 
 
-void NetworkLevelReasoner::startAbstractInterpretation(int DomainType) {
+void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
     if(_currentAI != NULL) delete _currentAI;
     _currentAI = new AbstractInterpretorRaw();
-    _currentAI->setUseUnderApproximation(false);
+    _currentAI->setUseUnderApproximation(true);
 
     unsigned layerCount = _layerIndexToLayer.size();
     
+    double MAX_UB = 1000000;
+    double MIN_LB = -1000000;
 
     double ***initialBounds = new double**[layerCount];
     for(unsigned l = 0; l < layerCount; l++) {
         initialBounds[l] = new double*[_layerIndexToLayer[l]->getSize()];
         for(unsigned i = 0; i < _layerIndexToLayer[l]->getSize(); i++){
             initialBounds[l][i] = new double[2];
-            initialBounds[l][i][0] = _layerIndexToLayer[l]->getLb(i);
-            initialBounds[l][i][1] = _layerIndexToLayer[l]->getUb(i);
+            double lb = _layerIndexToLayer[l]->getLb(i);
+            double ub = _layerIndexToLayer[l]->getUb(i);
+            if(lb < MIN_LB) lb = MIN_LB;
+            if(ub > MAX_UB) ub = MAX_UB;
+            initialBounds[l][i][0] = lb;
+            initialBounds[l][i][1] = ub;
         }
     }
 
@@ -103,13 +110,13 @@ void NetworkLevelReasoner::startAbstractInterpretation(int DomainType) {
     }
 
     std::cout << "init _currentAI" << std::endl;
-    _currentAI->init(layerCount, layerPointers, DomainType);
+    _currentAI->init(layerCount, layerPointers, domainType);
     std::cout << "set initial bounds..." << std::endl;
-    _currentAI->setInitialBounds(initialBounds);
+    _currentAI->setInitialBounds(initialBounds, domainType == ABSTRACT_DOMAIN_ZONOTOPE);
 
     std::cout << "deleting the bounds" << std::endl;
     for(unsigned l = 0; l < layerCount; l++) {
-        for(unsigned i = 0; i < _layerIndexToLayer[0]->getSize(); i++){
+        for(unsigned i = 0; i < _layerIndexToLayer[l]->getSize(); i++){
             delete[] initialBounds[l][i];
         }
         delete[] initialBounds[l];

@@ -34,13 +34,20 @@ public:
         _useUnderApprox = useUnderApprox;
     }
 
-    void setInitialBounds(double ***bounds) {
+    void setInitialBounds(double ***bounds, bool initAllLayers) {
 
         std::cout << "initing current abstract value" << std::endl;
         _currentAV = new AbstractValueRaw(_env, 0);
-        _currentAV->initAsFirstLayer(bounds);
 
-        printCurrentBounds();
+        std::cout << "initing first layer..." << std::endl;
+        _currentAV->initFirstLayer(bounds[0]);
+
+        if(initAllLayers) {
+            std::cout << "initing other layers..." << std::endl;
+            AbstractValueRaw *tempVal = _currentAV;
+            _currentAV = _currentAV->initAllLayers(bounds);
+            delete tempVal;
+        }
 
         if(_useUnderApprox) {
             std::cout << "initing under polyhedron" << std::endl;
@@ -97,10 +104,12 @@ public:
 
             if(layer->getLayerType() == Layer::RELU) {
                 std::cout << "Performing ReLu" << std::endl;
+                printCurrentAv();
                 _currentAV = _currentAV->performRelu();
 
                 if(_useUnderApprox)
                     _currentUnderAV->applyRelu();
+                std::cout << "done with ReLu" << std::endl;
             }
 
             //Delete the previous (now unused) value
@@ -108,8 +117,9 @@ public:
 
             //print the bounds
             //printCurrentAv();
-        }        
-        //printCurrentBounds();
+        }      
+        printCurrentAv();  
+        printCurrentBounds();
     }
 
     void printCurrentBounds() {

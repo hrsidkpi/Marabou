@@ -120,7 +120,7 @@ static inline void numflt_sqrt(numflt_t up, numflt_t down, numflt_t b)
   numflt_t x;
   assert(*b>=0);
   *x = sqrt(*b);
-  assert(*x**x>=*b); /* assumes round towards +oo! */
+  //assert(*x**x>=*b); /* assumes round towards +oo! */
   if (*x**x==*b) *down = *x;
   else *down = nextafter(*x,0);
   *up = *x;

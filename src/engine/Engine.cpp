@@ -210,7 +210,7 @@ bool Engine::solve( unsigned timeoutInSeconds )
                 //    performSymbolicBoundTightening();
                 //}
                 //while ( applyAllValidConstraintCaseSplits() );
-                //splitJustPerformed = false;
+                splitJustPerformed = false;
             }
 
             // Perform any SmtCore-initiated case splits
@@ -315,6 +315,7 @@ bool Engine::solve( unsigned timeoutInSeconds )
                     _statistics.print();
                 }
                 _exitCode = Engine::UNSAT;
+                _networkLevelReasoner->dumpBounds();
                 return false;
             }
             else
@@ -1866,15 +1867,17 @@ void Engine::performSimulation()
     _networkLevelReasoner->simulate( &simulations );
 }
 
+
 void Engine::performAbstractInterpretationTightening() 
 {
-    //return;
+    return;
+
     std::cout << "performing AI step" << std::endl;
 
     _networkLevelReasoner->obtainCurrentBounds();
     
     std::cout << "Initializing AI..." << std::endl;
-    _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE);
+    _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_BOX);
     std::cout << "Performing AI..." << std::endl;
     _networkLevelReasoner->performAbstractInterpretation();
     std::cout << "Done AI, setting new constraints..." << std::endl;
@@ -1900,7 +1903,7 @@ void Engine::performAbstractInterpretationTightening()
             ++numTightenedBounds;
         }
     }
-    //_statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
+    _statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
     //_networkLevelReasoner->clearAbstractInterpretation();
     std::cout << "done performing AI step." << std::endl;
 

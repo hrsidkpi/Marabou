@@ -31,54 +31,106 @@ public:
         _ap_value = NULL;
     }
 
-    void initAsFirstLayer(double ***firstLayerBounds) {
-        if (_layerIndex != 0)
-            std::cerr << "Called AbstractValue::initAsFirstLayer on non-first-layer" << std::endl;
 
-        unsigned number_of_neurons = 0;
-        for(unsigned layer = 0; layer < _manager->_numberOfLayers; layer++) {
-            number_of_neurons+=_manager->_layers[layer]->getSize();
+    AbstractValueRaw *initLayer(unsigned layer, double **bounds)
+    {
+        unsigned layerSize = _manager->_layers[layer]->getSize();
+        char **varNames = new char*[layerSize];
+
+        ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, layerSize*2);
+
+        unsigned currentIndex = 0;
+        for(unsigned i = 0; i < layerSize; i++) {
+
+
+            varNames[i] = new char[30];
+            sprintf(varNames[i], "x_%d_%d",layer, i);
+            double lb = bounds[i][0];
+            double ub = bounds[i][1];
+            ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+            ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
+            ap_lincons1_set_list(&consLb,
+                AP_COEFF_S_INT, 1, varNames[i],
+                AP_CST_S_DOUBLE, -lb,
+                AP_END);
+            ap_lincons1_array_set(&constraintArray, currentIndex, &consLb);
+            currentIndex++;
+            ap_linexpr1_t exprUb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+            ap_lincons1_t consUb = ap_lincons1_make(AP_CONS_SUPEQ, &exprUb, NULL);
+            ap_lincons1_set_list(&consUb,
+                AP_COEFF_S_INT, -1, varNames[i],
+                AP_CST_S_DOUBLE, ub,
+                AP_END);
+            ap_lincons1_array_set(&constraintArray, currentIndex, &consUb);
+            currentIndex++;
         }
-        std::cout << "number of neurons: " << number_of_neurons << std::endl;
 
-        ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, number_of_neurons*2);
 
-        char **varNames = new char*[number_of_neurons];
+        AbstractValueRaw *newVal = new AbstractValueRaw(_manager, 0);
+        
+        newVal->_ap_value = new ap_abstract1_t();
+
+        ap_abstract1_t t = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &constraintArray);
+        *(newVal->_ap_value) = t;
+
+        ap_lincons1_array_clear(&constraintArray);
+
+        for(unsigned i = 0; i < layerSize; i++)
+            delete[] varNames[i];
+        delete[] varNames;
+
+        return newVal;
+    }
+
+    AbstractValueRaw *initAllLayers(double ***bounds) 
+    {
+        AbstractValueRaw *val = this;
+
+        for(unsigned layer = 1; layer < _manager->_numberOfLayers; layer++) {
+            std::cout << "initing layer " << layer << std::endl;
+            AbstractValueRaw *tempVal = val;
+            val = val->initLayer(layer, bounds[layer]);
+            if(tempVal != nullptr && tempVal != this)
+                delete tempVal;
+        }
+
+        return val;
+    }
+
+    void initFirstLayer(double **firstLayerBounds) {
+        unsigned layerSize = _manager->_layers[0]->getSize();
+
+        ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, layerSize*2);
+
+        char **varNames = new char*[layerSize];
         
         unsigned currentIndex = 0;
-        unsigned currentNeuron = 0;
-        for(unsigned layer = 0; layer < _manager->_numberOfLayers; layer++) {
-            for(unsigned i = 0; i < _manager->_layers[layer]->getSize(); i++) {
+        for(unsigned i = 0; i < layerSize; i++) {
+            varNames[i] = new char[30];
+            sprintf(varNames[i], "x_%d_%d",0, i);
+            double lb = firstLayerBounds[i][0];
+            double ub = firstLayerBounds[i][1];
 
-                varNames[currentNeuron] = new char[30];
-                sprintf(varNames[currentNeuron], "x_%d_%d",layer, i);
+            std::cout << "lb: " << lb << ", ub: " << ub << std::endl;
 
-                double lb = firstLayerBounds[layer][i][0];
-                double ub = firstLayerBounds[layer][i][1];
-
-                std::cout << lb << " < " << varNames[currentNeuron] << " < " << ub << std::endl;
-
-                ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
-                ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
-                ap_lincons1_set_list(&consLb,
-                    AP_COEFF_S_INT, 1, varNames[currentNeuron],
-                    AP_CST_S_DOUBLE, -lb,
-                    AP_END);
-                ap_lincons1_array_set(&constraintArray, currentIndex, &consLb);
-                currentIndex++;
-
-                ap_linexpr1_t exprUb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
-                ap_lincons1_t consUb = ap_lincons1_make(AP_CONS_SUPEQ, &exprUb, NULL);
-                ap_lincons1_set_list(&consUb,
-                    AP_COEFF_S_INT, -1, varNames[currentNeuron],
-                    AP_CST_S_DOUBLE, ub,
-                    AP_END);
-                ap_lincons1_array_set(&constraintArray, currentIndex, &consUb);
-                currentIndex++;
-                
-                currentNeuron++;
-            }
+            ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+            ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
+            ap_lincons1_set_list(&consLb,
+                AP_COEFF_S_INT, 1, varNames[i],
+                AP_CST_S_DOUBLE, -lb,
+                AP_END);
+            ap_lincons1_array_set(&constraintArray, currentIndex, &consLb);
+            currentIndex++;
+            ap_linexpr1_t exprUb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
+            ap_lincons1_t consUb = ap_lincons1_make(AP_CONS_SUPEQ, &exprUb, NULL);
+            ap_lincons1_set_list(&consUb,
+                AP_COEFF_S_INT, -1, varNames[i],
+                AP_CST_S_DOUBLE, ub,
+                AP_END);
+            ap_lincons1_array_set(&constraintArray, currentIndex, &consUb);
+            currentIndex++;
         }
+        
 
         std::cout << "Creating a new abstract1_t" << std::endl;
         _ap_value = new ap_abstract1_t();
@@ -95,7 +147,7 @@ public:
         std::cout << "clearing array" << std::endl;
         ap_lincons1_array_clear(&constraintArray);
 
-        for(unsigned i = 0; i < number_of_neurons; i++)
+        for(unsigned i = 0; i < layerSize; i++)
             delete[] varNames[i];
         delete[] varNames;
         
@@ -109,6 +161,8 @@ public:
     AbstractValueRaw *performAffineTransformation(const double *weightsMatrix, double *bias) {
 
 
+        std::cout<<"affine has layer index " << _layerIndex << std::endl;
+
         std::cout << "getting sizes" << std::endl;
         unsigned currLayerSize = _manager->_layers[_layerIndex]->getSize();
         unsigned nextLayerSize = _manager->_layers[_layerIndex + 1]->getSize();
@@ -119,9 +173,10 @@ public:
         ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, nextLayerSize);
         
         char *varName = new char[20];
+        char *jVarName = new char[20];
         
         for(unsigned i = 0; i < nextLayerSize; i++ ){
-            ap_linexpr1_t expr = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, 1);
+            ap_linexpr1_t expr = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, currLayerSize+1);
             ap_lincons1_t cons = ap_lincons1_make(AP_CONS_EQ, &expr, NULL);
 
             sprintf(varName, "x_%d_%d", _layerIndex+1, i);            
@@ -131,7 +186,6 @@ public:
                                   AP_END);
             for(unsigned j = 0; j < currLayerSize; j++) {
                 double weight = weightsMatrix[j*currLayerSize + i];
-                char jVarName[20];
                 sprintf(jVarName, "x_%d_%d", _layerIndex, j);
                 
                 ap_lincons1_set_list( &cons,
@@ -152,105 +206,100 @@ public:
 
 
         delete[] varName;
+        delete[] jVarName;
         return newVal;
     }
 
 
-    AbstractValueRaw *performRelu() {
-        
-        char s1[20];
-        char s2[20];
+    AbstractValueRaw *performReluOnNeuron(unsigned neuron) {
+        std::cout << "neuron " << neuron << std::endl;
 
+        char n1[20];
+        char n2[20];
+        sprintf(n1, "x_%d_%d", _layerIndex, neuron);
+        sprintf(n2, "x_%d_%d", _layerIndex+1, neuron);
+
+        // === Active case: neuron is positive and unchanged ===
+        //Meet with condition
+        ap_lincons1_array_t activeConstraintArray = ap_lincons1_array_make(_manager->_env, 1 );
+        ap_linexpr1_t activeExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, 1 );
+        ap_lincons1_t activeCons = ap_lincons1_make( AP_CONS_SUPEQ, &activeExpr, NULL );
+        ap_lincons1_set_list( &activeCons,
+                                AP_COEFF_S_INT, 1, n1,
+                                AP_END );
+        ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );        
+        ap_abstract1_t activeAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &activeConstraintArray);
+        ap_lincons1_array_clear(&activeConstraintArray);   
+
+        //Apply transformation for active condition (x=x)
+        activeConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
+        activeExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, 1);
+        activeCons = ap_lincons1_make( AP_CONS_EQ, &activeExpr, NULL );     
+        ap_lincons1_set_list( &activeCons,
+                                AP_COEFF_S_INT, 1, n1,
+                                AP_COEFF_S_INT, -1, n2,
+                                AP_END );
+        ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );        
+        ap_abstract1_t  activeAV_trans = ap_abstract1_meet_lincons_array(_manager->_manager, false, &activeAV, &activeConstraintArray);
+        ap_abstract1_clear(_manager->_manager, &activeAV);
+        ap_lincons1_array_clear(&activeConstraintArray);      
+
+
+        // === Inactive case: neuron is negative and becomes zero ===
+        //Meet with condition
+        ap_lincons1_array_t inactiveConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
+        ap_linexpr1_t inactiveExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, 1 );
+        ap_lincons1_t inactiveCons = ap_lincons1_make( AP_CONS_SUPEQ, &inactiveExpr, NULL );
+        ap_lincons1_set_list( &inactiveCons,
+                                AP_COEFF_S_INT, -1, n1,
+                                AP_END );
+        ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );        
+        ap_abstract1_t inactiveAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, _ap_value, &inactiveConstraintArray);
+        ap_lincons1_array_clear(&inactiveConstraintArray);     
+
+        //Apply transformation for inactive condition (x=x)
+        inactiveConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
+        inactiveExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, 1 );
+        inactiveCons = ap_lincons1_make( AP_CONS_EQ, &inactiveExpr, NULL );
+        ap_lincons1_set_list( &inactiveCons,
+                                AP_COEFF_S_INT, 1, n2,
+                                AP_END );
+        ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );        
+        ap_abstract1_t inactiveAV_trans;
+        if(ap_abstract1_is_bottom(_manager->_manager, &inactiveAV)) {
+            inactiveAV_trans = ap_abstract1_bottom(_manager->_manager, _manager->_env);
+        }
+        else {
+            inactiveAV_trans = ap_abstract1_meet_lincons_array(_manager->_manager, false, &inactiveAV, &inactiveConstraintArray);
+        }
+        ap_abstract1_clear(_manager->_manager, &inactiveAV);
+        ap_lincons1_array_clear(&inactiveConstraintArray);
+
+        // Join the results
+        AbstractValueRaw *newVal = new AbstractValueRaw(_manager, _layerIndex);
+        newVal->_ap_value = new ap_abstract1_t();
+        *(newVal->_ap_value) = ap_abstract1_join( _manager->_manager, false, &activeAV_trans, &inactiveAV_trans);
+
+        //cleanup and return
+        ap_abstract1_clear(_manager->_manager, &inactiveAV_trans);
+        ap_abstract1_clear(_manager->_manager, &activeAV_trans);
+        return newVal;
+    }
+
+    AbstractValueRaw *performRelu() {
         unsigned layerSize = _manager->_layers[_layerIndex]->getSize();
 
-        ap_abstract1_t currentAV = ap_abstract1_copy(_manager->_manager, _ap_value);
+        AbstractValueRaw *val = this;
 
-        for(unsigned i = 0; i < layerSize; ++i) {
-            // Active case: neuron is positive and unchanged
-
-            
-            //Meet with condition
-            ap_lincons1_array_t activeConstraintArray = ap_lincons1_array_make(_manager->_env, 1 );
-            ap_linexpr1_t activeExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, i );
-            ap_lincons1_t activeCons = ap_lincons1_make( AP_CONS_SUPEQ, &activeExpr, NULL );
-            sprintf(s1, "x_%d_%d", _layerIndex, i);
-            sprintf(s2, "x_%d_%d", _layerIndex+1, i);
-            ap_lincons1_set_list( &activeCons,
-                                    AP_COEFF_S_INT, 1, s1,
-                                    AP_END );
-            ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );
-
-            ap_abstract1_t activeAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, &currentAV, &activeConstraintArray);
-            ap_lincons1_array_clear(&activeConstraintArray);
-
-
-            //Apply transformation for active condition (x=x)
-            activeConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
-            activeExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, i);
-            activeCons = ap_lincons1_make( AP_CONS_EQ, &activeExpr, NULL );
-
-            ap_lincons1_set_list( &activeCons,
-                                    AP_COEFF_S_INT, 1, s1,
-                                    AP_COEFF_S_INT, -1, s2,
-                                    AP_END );
-            ap_lincons1_array_set( &activeConstraintArray, 0, &activeCons );
-
-            ap_abstract1_t  activeAV1 = ap_abstract1_meet_lincons_array(_manager->_manager, false, &activeAV, &activeConstraintArray);
-            ap_abstract1_clear(_manager->_manager, &activeAV);
-            activeAV = activeAV1;
-            ap_lincons1_array_clear(&activeConstraintArray);
-
-
-
-            // Inactive case: neuron is negative and becomes zero
-            sprintf(s1, "x_%d_%d", _layerIndex, i);
-            sprintf(s2, "x_%d_%d", _layerIndex+1, i);
-                
-            //Meet with condition
-            ap_lincons1_array_t inactiveConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
-            ap_linexpr1_t inactiveExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, i );
-            ap_lincons1_t inactiveCons = ap_lincons1_make( AP_CONS_SUPEQ, &inactiveExpr, NULL );
-            ap_lincons1_set_list( &inactiveCons,
-                                    AP_COEFF_S_INT, -1, s1,
-                                    AP_END );
-            ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );
-
-            ap_abstract1_t inactiveAV = ap_abstract1_meet_lincons_array(_manager->_manager, false, &currentAV, &inactiveConstraintArray);
-            ap_lincons1_array_clear(&inactiveConstraintArray);
-
-
-            //Apply transformation for inactive condition (x=x)
-            inactiveConstraintArray = ap_lincons1_array_make( _manager->_env, 1 );
-            inactiveExpr = ap_linexpr1_make( _manager->_env, AP_LINEXPR_SPARSE, i );
-            inactiveCons = ap_lincons1_make( AP_CONS_EQ, &inactiveExpr, NULL );
-            ap_lincons1_set_list( &inactiveCons,
-                                    AP_COEFF_S_INT, 1, s2,
-                                    AP_END );
-            ap_lincons1_array_set( &inactiveConstraintArray, 0, &inactiveCons );
-
-            ap_abstract1_t inactiveAV2;
-            if(ap_abstract1_is_bottom(_manager->_manager, &inactiveAV)) {
-                inactiveAV2 = ap_abstract1_bottom(_manager->_manager, _manager->_env);
-            }
-            else {
-                inactiveAV2 = ap_abstract1_meet_lincons_array(_manager->_manager, false, &inactiveAV, &inactiveConstraintArray);
-            }
-            ap_abstract1_clear(_manager->_manager, &inactiveAV);
-            ap_lincons1_array_clear(&inactiveConstraintArray);
-            
-
-            // Join the results
-            ap_abstract1_clear(_manager->_manager, &currentAV);
-            currentAV = ap_abstract1_join( _manager->_manager, false, &activeAV, &inactiveAV2);
-            ap_abstract1_clear(_manager->_manager, &inactiveAV2);
-            ap_abstract1_clear(_manager->_manager, &activeAV);
+        for(unsigned n = 0; n < layerSize; n++) {
+            AbstractValueRaw *tempVal = val;
+            val = val->performReluOnNeuron(n);
+            if(tempVal != nullptr && tempVal != this)
+                delete tempVal;
         }
 
-        AbstractValueRaw *newVal = new AbstractValueRaw(_manager, _layerIndex+1);
-        newVal->_ap_value = new ap_abstract1_t();
-        *(newVal->_ap_value) = ap_abstract1_copy(_manager->_manager, &currentAV);
-        ap_abstract1_clear(_manager->_manager, &currentAV);
-        return newVal;
+        val->setLayerIndex(_layerIndex+1);
+        return val;
     }
 
 

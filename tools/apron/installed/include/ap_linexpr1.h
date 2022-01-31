@@ -50,6 +50,7 @@ ap_linexpr1_t ap_linexpr1_of_linexpr0(ap_environment_t* env, ap_linexpr0_t* line
   return res;
 }
 
+
 ap_linexpr1_t ap_linexpr1_make(ap_environment_t* env,
 			       ap_linexpr_discr_t lin_discr, size_t size);
   /* Build a linear expressions with by default coefficients

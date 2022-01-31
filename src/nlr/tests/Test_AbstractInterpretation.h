@@ -28,6 +28,14 @@
 #include "armadillo.h"
 
 
+#define RUN_PURE_LINEAR false
+#define RUN_BASIC_TEST false
+#define RUN_HALFSPACE_TEST false
+#define RUN_POLYHEDRON_TEST false
+#define RUN_MULTI_TEST false
+#define RUN_LARGE_TEST false
+
+
 using namespace arma;
 
 
@@ -194,9 +202,9 @@ public:
 
         // Set the weights and biases for the weighted sum layers
         //layer 0 to 1
-        nlr.setWeight( 0, 0, 1, 0, 1 );
-        nlr.setWeight( 0, 0, 1, 1, 0 );
-        nlr.setWeight( 0, 1, 1, 0, 1 );
+        nlr.setWeight( 0, 0, 1, 0, 3.4 );
+        nlr.setWeight( 0, 0, 1, 1, 0.1 );
+        nlr.setWeight( 0, 1, 1, 0, 1.4 );
         nlr.setWeight( 0, 1, 1, 1, 1 );
         //layer 1 to 2
         nlr.setWeight( 2, 0, 3, 0, 1 );
@@ -275,10 +283,10 @@ public:
     }
 
     void set_tableau(MockTableau &tableau, unsigned num_of_layers) {
-        tableau.setLowerBound( 0, 0 );
-        tableau.setUpperBound( 0, 3 );
-        tableau.setLowerBound( 1, 0 );
-        tableau.setUpperBound( 1, 2 );
+        tableau.setLowerBound( 0, -0.3);
+        tableau.setUpperBound( 0, -0.2 );
+        tableau.setLowerBound( 1, -1.2 );
+        tableau.setUpperBound( 1, 1.1 );
 
         double large = 1000;
         for(unsigned neuron = 2; neuron < num_of_layers * 2; neuron++) {
@@ -286,9 +294,22 @@ public:
         }
     }
 
+    void set_tableau_variable_layer_size(MockTableau &tableau, unsigned num_of_neurons) {
+        tableau.setLowerBound( 0, 0 );
+        tableau.setUpperBound( 0, 3 );
+        tableau.setLowerBound( 1, 0 );
+        tableau.setUpperBound( 1, 2 );
+
+        double large = 1000;
+        for(unsigned neuron = 2; neuron < num_of_neurons; neuron++) {
+            tableau.setLowerBound(neuron, -large ); tableau.setUpperBound(neuron, large );
+        }
+    }
+
                                 
     void test_perform_abstract_interpretation_pure_linear() 
     {
+        if(!RUN_PURE_LINEAR) return;
         std::cout << "!!!test_perform_abstract_interpretation_pure_linear()!!!" << std::endl;
 
         NLR::NetworkLevelReasoner nlr;
@@ -313,7 +334,7 @@ public:
         double ub1 = bounds1->sup->val.dbl;
         ap_interval_free(bounds1);
 
-        TS_ASSERT_EQUALS(lb1, 2);
+        TS_ASSERT_EQUALS(lb1, -2);
         TS_ASSERT_EQUALS(ub1, 5);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
@@ -333,6 +354,7 @@ public:
 
     void test_perform_abstract_interpretation() 
     {
+        if(!RUN_BASIC_TEST) return;
         std::cout << "!!!test_perform_abstract_interpretation()!!!" << std::endl;
 
         NLR::NetworkLevelReasoner nlr;
@@ -345,6 +367,8 @@ public:
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
         TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_BOX) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+
+        throw(0);
 
         NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
 
@@ -378,6 +402,7 @@ public:
 
     void test_halfspaces() 
     {
+        if(!RUN_HALFSPACE_TEST) return;
         double *w = new double[2];
         w[0] = 1;
         w[1] = -1;
@@ -408,6 +433,8 @@ public:
 
     void test_poly_under_approximation() 
     {
+
+        if(!RUN_POLYHEDRON_TEST) return;
 
         double *w1 = new double[2] {1, 0};
         double *w2 = new double[2] {-1, 0};
@@ -455,6 +482,8 @@ public:
 
     void test_multi_abstract_interpretation()
     {
+        if(!RUN_MULTI_TEST) return;
+
         NLR::NetworkLevelReasoner nlr;
         populateNetworkSmall(nlr);
 
@@ -473,73 +502,77 @@ public:
     }
 
 
-    void populateNetworkLarge( NLR::NetworkLevelReasoner &nlr ) 
+    void populateNetworkLarge( NLR::NetworkLevelReasoner &nlr, unsigned hidednLayerCount, unsigned neuronPerHiddenLayer) 
     {
+
+        if(!RUN_LARGE_TEST) return;
+
         // Create the layers
         nlr.addLayer( 0, NLR::Layer::INPUT, 2 );
+        for(unsigned layer = 1; layer < hidednLayerCount * 2 + 1; layer+=2) {
+            nlr.addLayer( layer, NLR::Layer::WEIGHTED_SUM, neuronPerHiddenLayer );
+            nlr.addLayer( layer+1, NLR::Layer::RELU, neuronPerHiddenLayer );
+        }
 
-        nlr.addLayer( 1, NLR::Layer::WEIGHTED_SUM, 2 );
-        nlr.addLayer( 2, NLR::Layer::RELU, 2 );
-        nlr.addLayer( 3, NLR::Layer::WEIGHTED_SUM, 2 );
-        nlr.addLayer( 4, NLR::Layer::RELU, 2 );
-
-        nlr.addLayerDependency(0,1);
-        nlr.addLayerDependency(1,2);
-        nlr.addLayerDependency(2,3);
-        nlr.addLayerDependency(3,4);
+        for(unsigned layer = 0; layer < hidednLayerCount * 2; layer++) {
+            nlr.addLayerDependency(layer,layer+1);
+        }
 
         // Set the weights and biases for the weighted sum layers
-        //layer 0 to 1
-        nlr.setWeight( 0, 0, 1, 0, 1 );
-        nlr.setWeight( 0, 0, 1, 1, 0 );
-        nlr.setWeight( 0, 1, 1, 0, 1 );
-        nlr.setWeight( 0, 1, 1, 1, 1 );
-        //layer 1 to 2
-        nlr.setWeight( 2, 0, 3, 0, 1 );
-        nlr.setWeight( 2, 0, 3, 1, 0 );
-        nlr.setWeight( 2, 1, 3, 0, -1 );
-        nlr.setWeight( 2, 1, 3, 1, 1 );
+        for(unsigned layer = 0; layer < hidednLayerCount * 2; layer+=2) 
+        {
+            unsigned layerSize = neuronPerHiddenLayer;
+            if(layer == 0) layerSize = 2;
+            for(unsigned n1 = 0; n1 < layerSize; n1++) 
+            {
+                for(unsigned n2 = 0; n2 < neuronPerHiddenLayer; n2++) 
+                {
+                    nlr.setWeight(layer, n1, layer+1, n2, 1);
+                }
+            }
+        }
 
-        //Set the RELU sources
-        nlr.addActivationSource( 1, 0, 2, 0 );
-        nlr.addActivationSource( 1, 1, 2, 1 );
-        nlr.addActivationSource( 3, 0, 4, 0 );
-        nlr.addActivationSource( 3, 1, 4, 1 );
+        // Set the weights and biases for the weighted sum layers
+        for(unsigned layer = 1; layer < hidednLayerCount * 2; layer+=2) 
+        {
+            for(unsigned n1 = 0; n1 < neuronPerHiddenLayer; n1++) 
+            {
+                nlr.addActivationSource(layer, n1, layer+1, n1);
+            }
+        }
 
-        // Variable indexing
-        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 0 ), 0 );
-        nlr.setNeuronVariable( NLR::NeuronIndex( 0, 1 ), 1 );
-
-        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 0 ), 2 );
-        nlr.setNeuronVariable( NLR::NeuronIndex( 1, 1 ), 3 );
-
-        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 0 ), 4 );
-        nlr.setNeuronVariable( NLR::NeuronIndex( 2, 1 ), 5 );
-
-        nlr.setNeuronVariable( NLR::NeuronIndex( 3, 0 ), 6 );
-        nlr.setNeuronVariable( NLR::NeuronIndex( 3, 1 ), 7 );
-
-        nlr.setNeuronVariable( NLR::NeuronIndex( 4, 0 ), 8 );
-        nlr.setNeuronVariable( NLR::NeuronIndex( 4, 1 ), 9 );
+        unsigned index = 0;
+        for(unsigned layer = 0; layer <= hidednLayerCount * 2; layer++) 
+        {
+            unsigned layerSize = neuronPerHiddenLayer;
+            if(layer == 0) layerSize = 2;
+            for(unsigned n1 = 0; n1 < layerSize; n1++) 
+            {
+                nlr.setNeuronVariable( NLR::NeuronIndex( layer, n1 ), index );
+                index++;
+            }
+        }
     }
 
     void test_abstract_interpretation_large()
     {
+
+        if(!RUN_LARGE_TEST) return;
+
         NLR::NetworkLevelReasoner nlr;
-        populateNetworkLarge(nlr);
+
+        unsigned layerCount = 20;
+        unsigned neuronPerHiddenLayer = 100;
+        populateNetworkLarge(nlr, layerCount, neuronPerHiddenLayer);
 
         MockTableau tableau;
-        set_tableau(tableau, 5);
+        set_tableau_variable_layer_size(tableau, layerCount*2 * neuronPerHiddenLayer + 2);
         nlr.setTableau( &tableau );
 
-        for(unsigned iter = 0; iter < 10; ++iter)
-        {
-            std::cout << "!!!test_perform_abstract_interpretation() iteration!!!" << std::endl;
-
-            TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-            TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
-            TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
-        }
+        TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
+        
+        TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
     }
 
 };
