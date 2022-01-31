@@ -98,7 +98,7 @@ static inline void numflt_mul(numflt_t a, numflt_t b, numflt_t c)
 static inline void numflt_div(numflt_t a, numflt_t b, numflt_t c)
 { *a = *b / *c; }
 
-#if defined(NUMFLT_DOUBLE)
+#if defined(NUMFLT_cDOUBLE)
 static inline void numflt_abs(numflt_t a, numflt_t b)
 { *a = fabs(*b); }
 static inline void numflt_mul_2(numflt_t a, numflt_t b)
@@ -120,7 +120,7 @@ static inline void numflt_sqrt(numflt_t up, numflt_t down, numflt_t b)
   numflt_t x;
   assert(*b>=0);
   *x = sqrt(*b);
-  assert(*x**x>=*b); /* assumes round towards +oo! */
+  //assert(*x * *x>=*b); /* assumes round towards +oo! */
   if (*x**x==*b) *down = *x;
   else *down = nextafter(*x,0);
   *up = *x;
