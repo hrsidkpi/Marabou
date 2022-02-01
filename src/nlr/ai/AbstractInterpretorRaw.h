@@ -36,21 +36,17 @@ public:
 
     void setInitialBounds(double ***bounds, bool initAllLayers) {
 
-        std::cout << "initing current abstract value" << std::endl;
         _currentAV = new AbstractValueRaw(_env, 0);
 
-        std::cout << "initing first layer..." << std::endl;
         _currentAV->initFirstLayer(bounds[0]);
 
         if(initAllLayers) {
-            std::cout << "initing other layers..." << std::endl;
             AbstractValueRaw *tempVal = _currentAV;
             _currentAV = _currentAV->initAllLayers(bounds);
             delete tempVal;
         }
 
         if(_useUnderApprox) {
-            std::cout << "initing under polyhedron" << std::endl;
             unsigned dim = _env->_layers[0]->getSize();
             std::list<NLR::Halfspace*> halfspaces = {};
             for(unsigned i = 0; i < dim; i++) {
@@ -79,20 +75,16 @@ public:
         for(unsigned i = 0; i < _env->_numberOfLayers-1; i++) {
             Layer *layer = _env->_layers[i+1];
 
-            std::cout << "AI: propagating layer " << i << std::endl;
-
             //Save the last value for deleting later
             AbstractValueRaw *temp = _currentAV;
 
             if(layer->getLayerType() == Layer::WEIGHTED_SUM) {
-                std::cout << "Getting weights and biases" << std::endl;
                 const double *weights = layer->getWeightMatrix(i);
+
                 double *biases = layer->getBiases();
-                std::cout << "Performing affine transformation" << std::endl;
                 _currentAV = _currentAV->performAffineTransformation(weights, biases);
 
                 if(_useUnderApprox) {
-                    std::cout << "Performing affine on polyhedron" << std::endl;
                     arma::mat linear_trans_mat(weights, _env->_layers[i]->getSize(), _env->_layers[i+1]->getSize());
                     arma::mat translate_trans_mat(biases, _env->_layers[i+1]->getSize(), 1);
 
@@ -103,21 +95,16 @@ public:
             }
 
             if(layer->getLayerType() == Layer::RELU) {
-                std::cout << "Performing ReLu" << std::endl;
                 _currentAV = _currentAV->performRelu();
 
                 if(_useUnderApprox)
                     _currentUnderAV->applyRelu();
-                std::cout << "done with ReLu" << std::endl;
             }
 
             //Delete the previous (now unused) value
             delete temp;
 
-            //print the bounds
-            //printCurrentAv();
         }      
-        printCurrentBounds();
     }
 
     void printCurrentBounds() {

@@ -46,7 +46,6 @@ NetworkLevelReasoner::~NetworkLevelReasoner()
 {
     freeMemoryIfNeeded();
     if (_currentAI != NULL) {
-        std::cout << "Deleting abstract interpretor" << std::endl;
         delete _currentAI;
     }
 }
@@ -54,10 +53,8 @@ NetworkLevelReasoner::~NetworkLevelReasoner()
 
 
 void NetworkLevelReasoner::performAbstractInterpretation() {
-    std::cout << "Propagating current ai" << std::endl;
     _currentAI->propagate();
 
-    std::cout << "Updating bounds..." << std::endl;
     //Update the bounds
     for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
         Layer *layer = _layerIndexToLayer[i];
@@ -71,8 +68,14 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
             if(lb < -1000000) lb = -1000000;
             if(ub > 1000000) ub = 1000000;
 
-            layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, lb, Tightening::LB));
-            layer->getLayerOwner()->receiveTighterBound(Tightening(neuron, ub, Tightening::UB));
+            if(layer->neuronHasVariable(neuron))
+            {
+                unsigned neuronIndex = layer->neuronToVariable(neuron);
+                layer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, lb, Tightening::LB));
+                layer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, ub, Tightening::UB));
+            }
+            else{
+            }
 
             layer->setUb(neuron, ub);
             layer->setLb(neuron, lb);
@@ -90,8 +93,8 @@ void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
 
     unsigned layerCount = _layerIndexToLayer.size();
     
-    double MAX_UB = 1000000;
-    double MIN_LB = -1000000;
+    //double MAX_UB = 1000000;
+    //double MIN_LB = -1000000;
 
     double ***initialBounds = new double**[layerCount];
     for(unsigned l = 0; l < layerCount; l++) {
@@ -100,8 +103,8 @@ void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
             initialBounds[l][i] = new double[2];
             double lb = _layerIndexToLayer[l]->getLb(i);
             double ub = _layerIndexToLayer[l]->getUb(i);
-            if(lb < MIN_LB) lb = MIN_LB;
-            if(ub > MAX_UB) ub = MAX_UB;
+            //if(lb < MIN_LB) lb = MIN_LB;
+            //if(ub > MAX_UB) ub = MAX_UB;
             initialBounds[l][i][0] = lb;
             initialBounds[l][i][1] = ub;
         }
@@ -112,12 +115,9 @@ void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
         layerPointers[i] = _layerIndexToLayer[i];
     }
 
-    std::cout << "init _currentAI" << std::endl;
     _currentAI->init(layerCount, layerPointers, domainType);
-    std::cout << "set initial bounds..." << std::endl;
     _currentAI->setInitialBounds(initialBounds, domainType == ABSTRACT_DOMAIN_ZONOTOPE);
 
-    std::cout << "deleting the bounds" << std::endl;
     for(unsigned l = 0; l < layerCount; l++) {
         for(unsigned i = 0; i < _layerIndexToLayer[l]->getSize(); i++){
             delete[] initialBounds[l][i];

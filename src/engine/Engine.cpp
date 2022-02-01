@@ -1120,20 +1120,20 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
             performMILPSolverBoundedTightening();
 
 
+            
             /**
-
             //std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
             //_networkLevelReasoner->dumpBounds();
             std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;   
             _networkLevelReasoner->obtainCurrentBounds();         
-            _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE);
+            _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_BOX);
             std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
             _networkLevelReasoner->performAbstractInterpretation();
             //std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
             //_networkLevelReasoner->dumpBounds();
-
-            std::cout << "done with first abstract interpretation";
             **/
+            std::cout << "done with first abstract interpretation";
+            
 
         }
 
@@ -1882,16 +1882,14 @@ void Engine::performAbstractInterpretationTightening()
 
     _networkLevelReasoner->obtainCurrentBounds();
     
-    std::cout << "Initializing AI..." << std::endl;
     _networkLevelReasoner->startAbstractInterpretation(ABSTRACT_DOMAIN_BOX);
-    std::cout << "Performing AI..." << std::endl;
     _networkLevelReasoner->performAbstractInterpretation();
-    std::cout << "Done AI, setting new constraints..." << std::endl;
     
     List<Tightening> tightenings;
     _networkLevelReasoner->getConstraintTightenings( tightenings );
 
     unsigned numTightenedBounds = 0;
+    
     for ( const auto &tightening : tightenings )
     {
 
@@ -1911,7 +1909,6 @@ void Engine::performAbstractInterpretationTightening()
     }
     _statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
     //_networkLevelReasoner->clearAbstractInterpretation();
-    std::cout << "done performing AI step." << std::endl;
 
 }
 

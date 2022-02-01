@@ -327,7 +327,6 @@ public:
         NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
         ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
         
-        ai->printCurrentAv();
 
         ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_0"));
         double lb1 = bounds1->inf->val.dbl;
@@ -380,7 +379,6 @@ public:
         
         ap_interval_free(bounds1);
 
-        ai->printCurrentAv();
         TS_ASSERT_EQUALS(lb1, 0.0);
         TS_ASSERT_EQUALS(ub1, 5);
 

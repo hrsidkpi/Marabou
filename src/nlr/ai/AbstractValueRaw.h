@@ -87,7 +87,6 @@ public:
         AbstractValueRaw *val = this;
 
         for(unsigned layer = 1; layer < _manager->_numberOfLayers; layer++) {
-            std::cout << "initing layer " << layer << std::endl;
             AbstractValueRaw *tempVal = val;
             val = val->initLayer(layer, bounds[layer]);
             if(tempVal != nullptr && tempVal != this)
@@ -111,8 +110,6 @@ public:
             double lb = firstLayerBounds[i][0];
             double ub = firstLayerBounds[i][1];
 
-            std::cout << "lb: " << lb << ", ub: " << ub << std::endl;
-
             ap_linexpr1_t exprLb = ap_linexpr1_make(_manager->_env, AP_LINEXPR_SPARSE, i+1);
             ap_lincons1_t consLb = ap_lincons1_make(AP_CONS_SUPEQ, &exprLb, NULL);
             ap_lincons1_set_list(&consLb,
@@ -132,19 +129,14 @@ public:
         }
         
 
-        std::cout << "Creating a new abstract1_t" << std::endl;
         _ap_value = new ap_abstract1_t();
 
-        std::cout << "Creating the abstract for the array" << std::endl;
         ap_abstract1_t t = ap_abstract1_of_lincons_array(_manager->_manager, _manager->_env, &constraintArray);
 
-        std::cout << "copying the value" << std::endl;
         *_ap_value = ap_abstract1_copy(_manager->_manager, &t);
 
-        std::cout << "clearing manager" << std::endl;
         ap_abstract1_clear(_manager->_manager, &t);
         
-        std::cout << "clearing array" << std::endl;
         ap_lincons1_array_clear(&constraintArray);
 
         for(unsigned i = 0; i < layerSize; i++)
@@ -160,16 +152,9 @@ public:
 
     AbstractValueRaw *performAffineTransformation(const double *weightsMatrix, double *bias) {
 
-
-        std::cout<<"affine has layer index " << _layerIndex << std::endl;
-
-        std::cout << "getting sizes" << std::endl;
         unsigned currLayerSize = _manager->_layers[_layerIndex]->getSize();
         unsigned nextLayerSize = _manager->_layers[_layerIndex + 1]->getSize();
 
-        std::cout << "sizes: " << currLayerSize << ", " << nextLayerSize << std::endl;
-
-        std::cout << "making array..." << std::endl;
         ap_lincons1_array_t constraintArray = ap_lincons1_array_make(_manager->_env, nextLayerSize);
         
         char *varName = new char[20];
@@ -180,14 +165,16 @@ public:
             ap_lincons1_t cons = ap_lincons1_make(AP_CONS_EQ, &expr, NULL);
 
             sprintf(varName, "x_%d_%d", _layerIndex+1, i);            
+
             ap_lincons1_set_list( &cons,
                                   AP_COEFF_S_INT, -1, varName,
                                   AP_CST_S_DOUBLE, bias[i],
                                   AP_END);
             for(unsigned j = 0; j < currLayerSize; j++) {
-                double weight = weightsMatrix[j*currLayerSize + i];
+                //double weight = weightsMatrix[j*currLayerSize + i];
+                double weight = weightsMatrix[j * nextLayerSize + i];
                 sprintf(jVarName, "x_%d_%d", _layerIndex, j);
-                
+
                 ap_lincons1_set_list( &cons,
                                       AP_COEFF_S_DOUBLE, weight, jVarName,
                                       AP_END);
