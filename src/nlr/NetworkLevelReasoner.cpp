@@ -40,6 +40,8 @@ NetworkLevelReasoner::NetworkLevelReasoner()
     , _deepPolyAnalysis( nullptr )
 {
     _currentAI = NULL;
+    _currentUnderAI = NULL;
+    _useUnderApprox = false;
 }
 
 NetworkLevelReasoner::~NetworkLevelReasoner()
@@ -53,78 +55,131 @@ NetworkLevelReasoner::~NetworkLevelReasoner()
 
 
 void NetworkLevelReasoner::performAbstractInterpretation() {
-    _currentAI->propagate();
+    
+    //propagate through the layers
+    for(unsigned i = 0; i < _layerIndexToLayer.size()-1; i++) {
 
-    //Update the bounds
-    for(unsigned i = 0; i < _layerIndexToLayer.size(); i++) {
+        std::cout << "propagating from layer " << i << " to layer " << (i+1) << std::endl;
+        std::cout << "Current over approx size: " << _currentAI->getSizeString() << std::endl;
+        if(_useUnderApprox)
+            std::cout << "Current under approx size: " << _currentUnderAI->getSizeString() << std::endl;
+
+
         Layer *layer = _layerIndexToLayer[i];
-        for(unsigned neuron = 0; neuron < layer->getSize(); neuron++) {
-            char varname[20];
-            sprintf(varname, "x_%d_%d", i,  neuron);
-            ap_interval_t *bounds = ap_abstract1_bound_variable(getCurrentAI()->getEnvironment()->_manager, getCurrentAI()->getCurrentAV()->_ap_value, const_cast<char *>(varname));
-            double lb = bounds->inf->val.dbl;
-            double ub = bounds->sup->val.dbl;
+        Layer *nextLayer = _layerIndexToLayer[i+1];
+        Layer::Type layerType = nextLayer->getLayerType();
 
-            if(lb < -1000000) lb = -1000000;
-            if(ub > 1000000) ub = 1000000;
+        if(layerType == Layer::WEIGHTED_SUM) { 
+            std::cout << "Fully connected layer..." << std::endl;
+            const double *weights = nextLayer->getWeightMatrix(i);
 
-            if(layer->neuronHasVariable(neuron))
+            double *weightsArma = new double[nextLayer->getSize() * layer->getSize()];
+            for(unsigned x = 0; x < nextLayer->getSize(); x++) {
+                for(unsigned y = 0; y < layer->getSize(); y++) {
+                    weightsArma[x + y * nextLayer->getSize()] = weights[y + x * layer->getSize()];
+                }
+            }
+
+            arma::mat linear_trans_mat(weightsArma, nextLayer->getSize(), layer->getSize());
+            
+            double *biases = nextLayer->getBiases();
+            arma::mat translate_trans_mat(biases, nextLayer->getSize(), 1);
+
+            _currentAI->applyFullyConnectedLayer(linear_trans_mat, translate_trans_mat);
+
+            if(_useUnderApprox) {
+                _currentUnderAI->applyFullyConnectedLayer(linear_trans_mat, translate_trans_mat);
+            }
+
+            delete[] weightsArma;
+        }
+
+        if(layerType == Layer::RELU) {
+            std::cout << "ReLu Layer..." << std::endl;
+            _currentAI->applyReLu();
+            if(_useUnderApprox)
+                _currentUnderAI->applyReLu();
+        }
+
+
+        auto b = _currentAI->getBoundsForDim(0);
+        std::cout << "bounds for first var: " << b.lb << ", " << b.ub << std::endl;
+
+        if(i == _layerIndexToLayer.size()-2)
+            std::cout << "Done propagating the abstract value. Bounds: " << std::endl;
+
+        //_currentAI->print();
+
+        //update the bounds
+        double **bounds = _currentAI->getBounds();
+        for(unsigned neuron = 0; neuron < nextLayer->getSize(); neuron++) {
+            double lb = bounds[neuron][0];
+            double ub = bounds[neuron][1];
+        
+            if(i == _layerIndexToLayer.size()-2)
+                std::cout << "\t" << lb << " <= y_" << neuron << " <= " << ub << std::endl;
+
+            assert(lb < ub);
+
+            if(nextLayer->neuronHasVariable(neuron))
             {
-                unsigned neuronIndex = layer->neuronToVariable(neuron);
-                layer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, lb, Tightening::LB));
-                layer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, ub, Tightening::UB));
+                unsigned neuronIndex = nextLayer->neuronToVariable(neuron);
+                nextLayer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, lb, Tightening::LB));
+                nextLayer->getLayerOwner()->receiveTighterBound(Tightening(neuronIndex, ub, Tightening::UB));
             }
             else{
             }
 
-            layer->setUb(neuron, ub);
-            layer->setLb(neuron, lb);
-
-            ap_interval_free(bounds);
+            nextLayer->setUb(neuron, ub);
+            nextLayer->setLb(neuron, lb);
+            delete[] bounds[neuron];
         }
+        delete[] bounds;
     }
+
 }
 
 
-void NetworkLevelReasoner::startAbstractInterpretation(int domainType) {
+void NetworkLevelReasoner::startAbstractInterpretation(AI::AbstractDomainType overDomain, AI::AbstractDomainType underDomain) {
+    _useUnderApprox = underDomain != AI::NONE_DOMAIN;
+
     if(_currentAI != NULL) delete _currentAI;
-    _currentAI = new AbstractInterpretorRaw();
-    _currentAI->setUseUnderApproximation(false);
+    if(_currentUnderAI != NULL) delete _currentUnderAI;
 
-    unsigned layerCount = _layerIndexToLayer.size();
-    
-    //double MAX_UB = 1000000;
-    //double MIN_LB = -1000000;
 
-    double ***initialBounds = new double**[layerCount];
-    for(unsigned l = 0; l < layerCount; l++) {
-        initialBounds[l] = new double*[_layerIndexToLayer[l]->getSize()];
-        for(unsigned i = 0; i < _layerIndexToLayer[l]->getSize(); i++){
-            initialBounds[l][i] = new double[2];
-            double lb = _layerIndexToLayer[l]->getLb(i);
-            double ub = _layerIndexToLayer[l]->getUb(i);
-            //if(lb < MIN_LB) lb = MIN_LB;
-            //if(ub > MAX_UB) ub = MAX_UB;
-            initialBounds[l][i][0] = lb;
-            initialBounds[l][i][1] = ub;
-        }
+    //get the first layer bounds
+    double MAX_UB = 1000000;
+    double MIN_LB = -1000000;
+    Layer *l0 = _layerIndexToLayer[0];
+    double **bounds = new double*[l0->getSize()];
+    for(unsigned i = 0; i < l0->getSize(); i++) {
+        bounds[i] = new double[2];
+        double lb = l0->getLb(i);
+            double ub = l0->getUb(i);
+            
+            if(lb < MIN_LB) lb = MIN_LB;
+            if(ub > MAX_UB) ub = MAX_UB;
+            
+            if(ub < lb) {
+                std::cout << "LB is bigger than UB for var x_0_" << i << ". lb: " << lb << ", ub: " << ub << std::endl;
+            }
+            ASSERT(ub > lb);
+            
+            bounds[i][0] = lb;
+            bounds[i][1] = ub;
     }
 
-    Layer** layerPointers = new Layer*[layerCount];
-    for(unsigned i = 0; i < layerCount; i++) {
-        layerPointers[i] = _layerIndexToLayer[i];
+
+    _currentAI = AI::AbstractDomainBuilder(overDomain).build(bounds, l0->getSize());
+
+    if(_useUnderApprox) {
+        _currentUnderAI = AI::AbstractDomainBuilder(underDomain).build(bounds, l0->getSize());
     }
 
-    _currentAI->init(layerCount, layerPointers, domainType);
-    _currentAI->setInitialBounds(initialBounds, domainType == ABSTRACT_DOMAIN_ZONOTOPE);
-
-    for(unsigned l = 0; l < layerCount; l++) {
-        for(unsigned i = 0; i < _layerIndexToLayer[l]->getSize(); i++){
-            delete[] initialBounds[l][i];
-        }
-        delete[] initialBounds[l];
+    for(unsigned i = 0; i < l0->getSize(); i++) {
+        delete[] bounds[i];
     }
-    delete[] initialBounds;
+    delete[] bounds;
 }
 
 void NetworkLevelReasoner::clearAbstractInterpretation() {
@@ -132,7 +187,7 @@ void NetworkLevelReasoner::clearAbstractInterpretation() {
 }
 
 
-AbstractInterpretorRaw *NetworkLevelReasoner::getCurrentAI() {
+AI::AbstractDomain *NetworkLevelReasoner::getCurrentAI() {
     return _currentAI;
 }
 

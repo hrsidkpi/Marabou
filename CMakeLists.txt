@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
 project(Marabou)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -308,7 +308,12 @@ target_include_directories(ARMADILLO_LIB INTERFACE ${ARNADILLO_DIR}/include/arma
 target_include_directories(ARMADILLO_LIB INTERFACE ${ARNADILLO_DIR}/include/)
 list(APPEND LIBS ARMADILLO_LIB)
 
-
+#sovle_lp
+set(SOLVE_LP_DIR "${TOOLS_DIR}/lp_solve")
+add_library(SOLVE_LP_LIB SHARED IMPORTED)
+set_target_properties(SOLVE_LP_LIB PROPERTIES IMPORTED_LOCATION ${SOLVE_LP_DIR}/lib/liblpsolve55.so)
+target_include_directories(SOLVE_LP_LIB INTERFACE ${SOLVE_LP_DIR}/include/)
+list(APPEND LIBS SOLVE_LP_LIB)
 
 # pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)

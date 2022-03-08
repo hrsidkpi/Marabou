@@ -12,8 +12,8 @@
  **
  ** [[ Add lengthier description here ]]
 
-**/
 
+**/
 #include <cxxtest/TestSuite.h>
 
 #include "../../engine/tests/MockTableau.h"
@@ -21,14 +21,13 @@
 #include "InputQuery.h"
 #include "Layer.h"
 #include "NetworkLevelReasoner.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/Halfspace.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/Polyhedron.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/polyhedron/Halfspace.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/polyhedron/Polyhedron.h"
 #include "Tightening.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/AbstractDomainEnum.h"
 #include "armadillo.h"
 
 
-#define RUN_PURE_LINEAR false
+#define RUN_PURE_LINEAR true
 #define RUN_BASIC_TEST false
 #define RUN_HALFSPACE_TEST false
 #define RUN_POLYHEDRON_TEST false
@@ -283,10 +282,10 @@ public:
     }
 
     void set_tableau(MockTableau &tableau, unsigned num_of_layers) {
-        tableau.setLowerBound( 0, -0.3);
-        tableau.setUpperBound( 0, -0.2 );
-        tableau.setLowerBound( 1, -1.2 );
-        tableau.setUpperBound( 1, 1.1 );
+        tableau.setLowerBound( 0, 0);
+        tableau.setUpperBound( 0, 3 );
+        tableau.setLowerBound( 1, 0 );
+        tableau.setUpperBound( 1, 2 );
 
         double large = 1000;
         for(unsigned neuron = 2; neuron < num_of_layers * 2; neuron++) {
@@ -320,35 +319,34 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_BOX) );
-        TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
+        nlr.performAbstractInterpretation();
+        //TS_ASSERT_THROWS_NOTHING(  );        
 
+        double **finalBounds = nlr.getCurrentAI()->getBounds();
 
-        NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
-        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
-        
+        double lb1 = finalBounds[0][0];
+        double ub1 = finalBounds[0][1];
 
-        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_0"));
-        double lb1 = bounds1->inf->val.dbl;
-        double ub1 = bounds1->sup->val.dbl;
-        ap_interval_free(bounds1);
-
-        TS_ASSERT_EQUALS(lb1, -2);
-        TS_ASSERT_EQUALS(ub1, 5);
+        TS_ASSERT_EQUALS(lb1, 0);
+        TS_ASSERT_EQUALS(ub1, 3);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
 
-        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_2_1"));
-        double lb2 = bounds2->inf->val.dbl;
-        double ub2 = bounds2->sup->val.dbl;
-        ap_interval_free(bounds2);
+        double lb2 = finalBounds[1][0];
+        double ub2 = finalBounds[1][1];
 
         TS_ASSERT_EQUALS(lb2, 0);
         TS_ASSERT_EQUALS(ub2, 2);
 
         if(lb2 == 0) std::cout << "Lower bound 2 OK" << std::endl;
         if(ub2 == 11) std::cout << "Lower bound 2 OK" << std::endl;
+
+        for(unsigned i = 0; i < 2; i++) {
+            delete[] finalBounds[i];
+        }
+        delete[] finalBounds;
     }
 
     void test_perform_abstract_interpretation() 
@@ -364,32 +362,22 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_BOX) );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
 
-        throw(0);
+        double **finalBounds = nlr.getCurrentAI()->getBounds();
 
-        NLR::AbstractInterpretorRaw *ai = nlr.getCurrentAI();
+        double lb1 = finalBounds[0][0];
+        double ub1 = finalBounds[0][1];
 
-        ap_abstract1_t *val = ai->getCurrentAV()->_ap_value;
-                                                                                                                                                                                                 
-        ap_interval_t *bounds1 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_1_0"));
-        double lb1 = bounds1->inf->val.dbl;
-        double ub1 = bounds1->sup->val.dbl;
-        
-        ap_interval_free(bounds1);
-
-        TS_ASSERT_EQUALS(lb1, 0.0);
+        TS_ASSERT_EQUALS(lb1, 0);
         TS_ASSERT_EQUALS(ub1, 5);
 
         if(lb1 == 0) std::cout << "Lower bound 1 OK" << std::endl;
         if(ub1 == 14) std::cout << "Lower bound 1 OK" << std::endl;
 
-
-        ap_interval_t *bounds2 = ap_abstract1_bound_variable(ai->getEnvironment()->_manager, val, const_cast<char *>("x_1_1"));
-        double lb2 = bounds2->inf->val.dbl;
-        double ub2 = bounds2->sup->val.dbl;
-        ap_interval_free(bounds2);
+        double lb2 = finalBounds[1][0];
+        double ub2 = finalBounds[1][1];
 
         TS_ASSERT_EQUALS(lb2, 0);
         TS_ASSERT_EQUALS(ub2, 2);
@@ -494,7 +482,7 @@ public:
             std::cout << "!!!test_perform_abstract_interpretation() iteration!!!" << std::endl;
 
             TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-            TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
+            TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
             TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
         }
     }
@@ -568,9 +556,36 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(ABSTRACT_DOMAIN_ZONOTOPE) );
-        
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
         TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+
+        TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
+        TS_ASSERT_THROWS_NOTHING( nlr.performAbstractInterpretation() );
+    }
+
+    void test_zonotope()
+    {
+        std::vector<arma::mat> gens;
+
+        arma::mat g1 = {1, 0};
+        g1 = g1.t();
+        gens.push_back(g1);
+
+        arma::mat g2 = {1, 1};
+        g2 = g2.t();
+        gens.push_back(g2);
+
+        arma::mat bias = {-1, 0};
+        bias = bias.t();
+
+        AI::Zonotope z(gens, bias);
+
+        //z.print();
+
+        z.applyReLu();
+
+        //z.print();
     }
 
 };

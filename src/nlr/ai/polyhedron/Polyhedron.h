@@ -40,6 +40,7 @@ public:
     }
 
     void applyAffineTransformation(arma::mat transformation_linear_mat, arma::mat transformation_translate_mat) {
+        transformation_linear_mat = transformation_linear_mat.t();
         std::list<NLR::Halfspace*> new_halfspaces {};
         for(auto& h : halfspaces) {
             bool has_sol = h->applyAffineTransformation(transformation_linear_mat, transformation_translate_mat);

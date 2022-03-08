@@ -6,8 +6,10 @@ if [ "$CONT" = "y" ]; then
     rm -r build
     rm CMakeCache.txt
     mkdir build
-    cd build    
-    cmake ..    
+    cd build 
+    ssh-add 
+    ssh git@github.com
+    cmake .. -DFETCHCONTENT_QUIET=OFF 
     echo "building..."
     cmake --build . -j 4
 else

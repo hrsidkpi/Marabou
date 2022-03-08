@@ -306,7 +306,7 @@ void Layer::computeSimulations()
 void Layer::addSourceLayer( unsigned layerNumber, unsigned layerSize )
 {
     ASSERT( _type != INPUT );
-
+    
     if ( _sourceLayers.exists( layerNumber ) )
         return;
 

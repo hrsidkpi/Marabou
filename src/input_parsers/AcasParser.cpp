@@ -151,6 +151,7 @@ void AcasParser::generateQuery( InputQuery &inputQuery )
 
         for ( unsigned j = 0; j < currentLayerSize; ++j )
         {
+            // VALGRIND HATES THESE 4 LINES, FIGURE OUT WHY
             unsigned b = _nodeToB[NodeIndex(i, j)];
             unsigned f = _nodeToF[NodeIndex(i, j)];
             PiecewiseLinearConstraint *relu = new ReluConstraint( b, f );

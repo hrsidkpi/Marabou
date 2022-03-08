@@ -7,8 +7,8 @@
 #include "AbstractValueRaw.h"
 #include "Layer.h"
 #include "AbstractEnvironmentRaw.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/AbstractDomainEnum.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/Polyhedron.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/apron/AbstractDomainEnum.h"
+#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/apron/polyhedron/Polyhedron.h"
 //#include "armadillo.h"
 
 //using namespace arma;
@@ -36,15 +36,24 @@ public:
 
     void setInitialBounds(double ***bounds, bool initAllLayers) {
 
+        (void) initAllLayers;
+
         _currentAV = new AbstractValueRaw(_env, 0);
 
-        _currentAV->initFirstLayer(bounds[0]);
+        
+        std::cout << "initing" << std::endl;
 
+        _currentAV->initLayer(0, bounds[0]);
+
+        std::cout << "init worked" << std::endl;
+
+        /**
         if(initAllLayers) {
             AbstractValueRaw *tempVal = _currentAV;
             _currentAV = _currentAV->initAllLayers(bounds);
             delete tempVal;
         }
+        **/
 
         if(_useUnderApprox) {
             unsigned dim = _env->_layers[0]->getSize();
@@ -75,14 +84,16 @@ public:
         for(unsigned i = 0; i < _env->_numberOfLayers-1; i++) {
             Layer *layer = _env->_layers[i+1];
 
-            //Save the last value for deleting later
-            AbstractValueRaw *temp = _currentAV;
+            _env->currentLayer = i;
+            _env->prepareForNextLayer();
+            _currentAV->setLayerIndex(i);
+            _currentAV->updateToEnv();
 
             if(layer->getLayerType() == Layer::WEIGHTED_SUM) {
                 const double *weights = layer->getWeightMatrix(i);
-
                 double *biases = layer->getBiases();
-                _currentAV = _currentAV->performAffineTransformation(weights, biases);
+
+                _currentAV->performAffineTransformation(weights, biases);
 
                 if(_useUnderApprox) {
                     arma::mat linear_trans_mat(weights, _env->_layers[i]->getSize(), _env->_layers[i+1]->getSize());
@@ -95,16 +106,17 @@ public:
             }
 
             if(layer->getLayerType() == Layer::RELU) {
-                _currentAV = _currentAV->performRelu();
+                _currentAV->performRelu();
 
                 if(_useUnderApprox)
                     _currentUnderAV->applyRelu();
             }
 
-            //Delete the previous (now unused) value
-            delete temp;
 
-        }      
+        }    
+        
+        _env->currentLayer = _env->_numberOfLayers-1;
+        _env->finalize();  
     }
 
     void printCurrentBounds() {
@@ -113,7 +125,7 @@ public:
             for(unsigned neuron = 0; neuron < layer->getSize(); neuron++) {
                 char varname[20];
                 sprintf(varname, "x_%d_%d", i,  neuron);
-                ap_interval_t *bounds = ap_abstract1_bound_variable(getEnvironment()->_manager, getCurrentAV()->_ap_value, const_cast<char *>(varname));
+                ap_interval_t *bounds = ap_abstract1_bound_variable(getEnvironment()->_manager, &(getCurrentAV()->_ap_value), const_cast<char *>(varname));
                 double lb = bounds->inf->val.dbl;
                 double ub = bounds->sup->val.dbl;
                 std::cout<<"======================== " << varname << " (" << i << ", " << neuron << "): " << lb <<", " << ub << " ============================" << std::endl;
@@ -127,15 +139,12 @@ public:
             std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
         }
         if(_env->_manager == NULL) {
-            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+            std::cout << "Error: _env->_manager is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
         }
         if(_currentAV == NULL) {
-            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
+            std::cout << "Error: _curretntAV is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
         }
-        if(_currentAV->_ap_value == NULL) {
-            std::cout << "Error: _env is NULL in AbstractInterpretor.h::printCurrentAv()" << std::endl;
-        }
-        ap_abstract1_fprint(stdout, _env->_manager, _currentAV->_ap_value);
+        ap_abstract1_fprint(stdout, _env->_manager, &(_currentAV->_ap_value));
 
         if(_useUnderApprox)
             _currentUnderAV->print();

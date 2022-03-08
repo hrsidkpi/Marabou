@@ -27,7 +27,9 @@
 #include "Tightening.h"
 #include "Vector.h"
 
-#include "ai/AbstractInterpretorRaw.h"
+#include "ai/AbstractDomain/AbstractDomain.h"
+
+#include "ai/AbstractDomain/AbstractDomainBuilder.h"
 
 #include <memory>
 
@@ -46,7 +48,7 @@ public:
 
     static bool functionTypeSupported( PiecewiseLinearFunctionType type );
 
-    AbstractInterpretorRaw *getCurrentAI();
+    AI::AbstractDomain *getCurrentAI();
 
     /*
       Populate the NLR by specifying the network's topology.
@@ -125,7 +127,7 @@ public:
     void iterativePropagation();
 
     void performAbstractInterpretation();
-    void startAbstractInterpretation(int domainType);
+    void startAbstractInterpretation(AI::AbstractDomainType overDomain, AI::AbstractDomainType underDomain);
     void clearAbstractInterpretation();
 
     void receiveTighterBound( Tightening tightening );
@@ -187,13 +189,10 @@ private:
     Map<unsigned, Layer *> _layerIndexToLayer;
     const ITableau *_tableau;
 
-    ap_manager_t *_apronManager;
-    char *_apronVariables;
+    AI::AbstractDomain *_currentAI;
 
-    char **_variableNames;
-    unsigned _totalNumberOfVariables;
-
-    AbstractInterpretorRaw *_currentAI;
+    bool _useUnderApprox;
+    AI::AbstractDomain *_currentUnderAI;
 
 
     // Tightenings discovered by the various layers
