@@ -1,7 +1,6 @@
 #include "ZonotopeOperations.h"
 #include "../../utilities/LPSolver/LPSolver.h"
 #include "../../utilities/LPSolver/LPRowBuilder.h"
-
 AI::Zonotope AI::createBoundingZonotope(std::vector<arma::mat> points, std::vector<arma::mat> generators)
 {
 	unsigned dim = points[0].size();
@@ -99,5 +98,46 @@ AI::Zonotope AI::createBoundingZonotope(std::vector<arma::mat> points, std::vect
 }
 
 AI::Zonotope AI::joinZonotopes(AI::Zonotope z1, AI::Zonotope z2) {
-	
+	arma::mat bias = (z1.getBias() + z2.getBias()) / 2;
+
+	std::vector<arma::mat> g1 = z1.getGenerators();
+	std::vector<arma::mat> g2 = z2.getGenerators();
+	while (g1.size() < g2.size()) {
+		g1.push_back(arma::mat(z1.getDimension(), 1, arma::fill::zeros));
+	}
+	while (g2.size() < g1.size()) {
+		g2.push_back(arma::mat(z1.getDimension(), 1, arma::fill::zeros));
+	}
+
+	std::vector<arma::mat> newGens;
+	for (unsigned i = 0; i < g1.size(); i++) {
+		arma::mat gPlus = (g1[i] + g2[i]) / 2;
+		arma::mat gMinus = (g1[i] - g2[i]) / 2;
+		newGens.push_back(gPlus);
+		newGens.push_back(gMinus);
+	}
+	newGens.push_back((z1.getBias() - z2.getBias()) / 2);
+
+	return AI::Zonotope(newGens, bias);
+}
+
+std::pair<AI::Zonotope, AI::Zonotope> AI::splitZonotope(AI::Zonotope z) {
+	unsigned bestIndex = -1;
+	unsigned bestMag = 0;
+	for (unsigned i = 0; i < z.getGenerators().size(); i++) {
+		double norm = arma::norm(z.getGenerators()[i]);
+		if (norm > bestMag) {
+			bestMag = norm;
+			bestIndex = i;
+		}
+	}
+
+	AI::Zonotope zPos(z);
+	AI::Zonotope zNeg(z);
+
+	zPos.changeEpsilonBounds(bestIndex, 0, 1);
+	zNeg.changeEpsilonBounds(bestIndex, -1, 0);
+
+	std::pair<AI::Zonotope, AI::Zonotope> res(zPos, zNeg);
+	return res;
 }

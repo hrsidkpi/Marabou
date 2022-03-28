@@ -31,6 +31,7 @@
 #include "TableauRow.h"
 #include "TimeUtils.h"
 #include "Vector.h" 
+#include "ComplexAbstractDomainBuilder.h"
 
 #include <random>
 
@@ -1878,14 +1879,17 @@ void Engine::performSimulation()
 void Engine::performAbstractInterpretationTightening() 
 {
     static unsigned _ai_step_count = 0; 
-    return;
+    static unsigned _requested_ai_step_count = 0;
+
+    _requested_ai_step_count++;
+    if(_requested_ai_step_count % 100 != 0) return;
 
     std::cout << "performing AI step " << _ai_step_count << std::endl;
     _ai_step_count++;
 
     _networkLevelReasoner->obtainCurrentBounds();
     
-    _networkLevelReasoner->startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN);
+    _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 8, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
     _networkLevelReasoner->performAbstractInterpretation();
     
     List<Tightening> tightenings;

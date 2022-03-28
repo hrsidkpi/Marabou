@@ -1,2 +1,1 @@
-ssh pheonix-gw
-https://wiki.cs.huji.ac.il/wiki/Main_page bava
+ssh -l hrsidkpi -J hrsidkpi@bava.cs.huji.ac.il phoenix-gw

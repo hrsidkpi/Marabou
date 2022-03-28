@@ -3,20 +3,17 @@
 #include "armadillo.h"
 #include "../AbstractDomain.h"
 #include <stdlib.h>
-#include "../Zonotope/Zonotope.h"
-#include "../Zonotope/ZonotopeOperations.h"
+#include "../PolyhedronUnder/PolyhedronUnder.h"
 
 
 namespace AI {
 
-	class ZonotopeN : public AbstractDomain {
+	class PolyhedronUnderN : public AbstractDomain {
 	public:
 
-		~ZonotopeN() {
-			for(unsigned i = 0; i < )
-		};
+		~PolyhedronUnderN() {};
 
-		ZonotopeN(Zonotope initialZonotope, unsigned N) { zonotopes = std::vector<Zonotope>(); zonotopes.push_back(initialZonotope); this->N = N; }
+		PolyhedronUnderN(PolyhedronUnder initialZonotope, unsigned N) { polyhedrons = std::vector<PolyhedronUnder>(); polyhedrons.push_back(initialZonotope); this->N = N; }
 		
 		virtual void applyFullyConnectedLayer(arma::mat linear, arma::mat translation) override;
 		virtual void applyReLuOnDim(unsigned dim) override;
@@ -36,11 +33,11 @@ namespace AI {
 	private:
 
 
-		void splitAllZonotopes();
+		void splitAllPolyhedrons();
 		void joinToN();
 		void joinBestTwo();
 
-		std::vector<Zonotope> zonotopes;
+		std::vector<PolyhedronUnder> polyhedrons;
 		unsigned N;
 	};
 

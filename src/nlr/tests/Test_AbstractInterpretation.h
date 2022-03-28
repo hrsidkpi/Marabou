@@ -25,6 +25,7 @@
 #include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/polyhedron/Polyhedron.h"
 #include "Tightening.h"
 #include "armadillo.h"
+#include "ComplexAbstractDomainBuilder.h"
 
 
 #define RUN_PURE_LINEAR true
@@ -319,7 +320,7 @@ public:
         nlr.setTableau( &tableau );
 
         TS_ASSERT_THROWS_NOTHING( nlr.obtainCurrentBounds() );
-        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN) );
+        TS_ASSERT_THROWS_NOTHING( nlr.startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 10, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0) );
         nlr.performAbstractInterpretation();
         //TS_ASSERT_THROWS_NOTHING(  );        
 

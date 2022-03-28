@@ -30,6 +30,7 @@
 #include "ai/AbstractDomain/AbstractDomain.h"
 
 #include "ai/AbstractDomain/AbstractDomainBuilder.h"
+#include "ComplexAbstractDomainBuilder.h"
 
 #include <memory>
 
@@ -128,6 +129,7 @@ public:
 
     void performAbstractInterpretation();
     void startAbstractInterpretation(AI::AbstractDomainType overDomain, AI::AbstractDomainType underDomain);
+    void startAbstractInterpretation(AI::ComplexAbstractDomainType overDomain, unsigned nOver, AI::ComplexAbstractDomainType underDomain, unsigned nUnder);
     void clearAbstractInterpretation();
 
     void receiveTighterBound( Tightening tightening );

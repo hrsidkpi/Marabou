@@ -21,20 +21,18 @@ namespace AI {
 		virtual void applyFullyConnectedLayer(arma::mat linear, arma::mat translation) = 0;
 		virtual void applyReLuOnDim(unsigned dim) = 0;
 		
-		virtual void joinWith(AbstractDomain& other) = 0;
-
 		virtual double** getBounds() = 0;
 
-		virtual AI::AbstractDomainDimBound getBoundsForDim(unsigned dim) = 0;
+		virtual AbstractDomainDimBound getBoundsForDim(unsigned dim) = 0;
 
-		//virtual void print() = 0;
+		virtual void print() = 0;
 
 		virtual unsigned getDimension() = 0;
 
 		//Return a string representation of the size of the current domain (for example, number of generators in a zonotope)
 		virtual std::string getSizeString() = 0; 
 
-		void applyReLu() {
+		virtual void applyReLu() {
 			for (unsigned i = 0; i < getDimension(); ++i) {
 				std::cout << "relu on dim " << i << std::endl;
 				std::cout << "Current size: " << getSizeString() << std::endl;

@@ -38,6 +38,7 @@
 #include "SmtCore.h"
 #include "Statistics.h"
 #include "SymbolicBoundTighteningType.h"
+#include "ComplexAbstractDomainBuilder.h"
 
 #include <atomic>
 

@@ -102,10 +102,6 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
                 _currentUnderAI->applyReLu();
         }
 
-
-        auto b = _currentAI->getBoundsForDim(0);
-        std::cout << "bounds for first var: " << b.lb << ", " << b.ub << std::endl;
-
         if(i == _layerIndexToLayer.size()-2)
             std::cout << "Done propagating the abstract value. Bounds: " << std::endl;
 
@@ -175,6 +171,48 @@ void NetworkLevelReasoner::startAbstractInterpretation(AI::AbstractDomainType ov
 
     if(_useUnderApprox) {
         _currentUnderAI = AI::AbstractDomainBuilder(underDomain).build(bounds, l0->getSize());
+    }
+
+    for(unsigned i = 0; i < l0->getSize(); i++) {
+        delete[] bounds[i];
+    }
+    delete[] bounds;
+}
+
+void NetworkLevelReasoner::startAbstractInterpretation(AI::ComplexAbstractDomainType overDomain, unsigned nOver, AI::ComplexAbstractDomainType underDomain, unsigned nUnder) {
+    _useUnderApprox = underDomain != AI::ComplexAbstractDomainType::NONE_N_DOMAIN;
+
+    if(_currentAI != NULL) delete _currentAI;
+    if(_currentUnderAI != NULL) delete _currentUnderAI;
+
+
+    //get the first layer bounds
+    double MAX_UB = 1000000;
+    double MIN_LB = -1000000;
+    Layer *l0 = _layerIndexToLayer[0];
+    double **bounds = new double*[l0->getSize()];
+    for(unsigned i = 0; i < l0->getSize(); i++) {
+        bounds[i] = new double[2];
+        double lb = l0->getLb(i);
+            double ub = l0->getUb(i);
+            
+            if(lb < MIN_LB) lb = MIN_LB;
+            if(ub > MAX_UB) ub = MAX_UB;
+            
+            if(ub < lb) {
+                std::cout << "LB is bigger than UB for var x_0_" << i << ". lb: " << lb << ", ub: " << ub << std::endl;
+            }
+            ASSERT(ub > lb);
+            
+            bounds[i][0] = lb;
+            bounds[i][1] = ub;
+    }
+
+
+    _currentAI = AI::ComplexAbstractDomainBuilder(overDomain, nOver).build(bounds, l0->getSize());
+
+    if(_useUnderApprox) {
+        _currentUnderAI = AI::ComplexAbstractDomainBuilder(underDomain, nUnder).build(bounds, l0->getSize());
     }
 
     for(unsigned i = 0; i < l0->getSize(); i++) {
