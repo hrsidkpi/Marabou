@@ -1,18 +1,22 @@
 with AI every split:
 -------------------
-net 1 property 1: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
-net 1 property 2: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
-net 1 property 3: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
-net 1 property 4: unsat, immediately, 1 visited state, 0 splits, total time elapsed 00:00:00 (400 milli)
+net 1 property 1: unsat, 20634 visited states, 10316 splits, total time elapsed 01:47:24
+
+net 1 property 2: unsat, 64946, 32472, 04:49:36
+
+net 1 property 3: unsat, 99804, 49901, 09:28:13
 
 
 with AI on at the beggining:
 ----------------------------
-net 1 property 1: unsat
+net 1 property 1: unsat, 23282 visited states, 11640 splits, total time elapsed 01:51:53
 
 net 1 property 2: unsat, 68698 visited states, 34348 splits, total time elapsed 04:54:14
 
-net 1 property 3: unsat, long time, about 4 hours, didnt document
+net 1 property 3: unsat, 104292, 52145, 09:18:06
 
 without AI:
 -----------
+
+
+

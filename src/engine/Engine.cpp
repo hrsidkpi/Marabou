@@ -1878,7 +1878,7 @@ void Engine::performSimulation()
 void Engine::performAbstractInterpretationTightening() 
 {
     static unsigned _ai_step_count = 0; 
-    //return;
+    return;
 
     std::cout << "performing AI step " << _ai_step_count << std::endl;
     _ai_step_count++;

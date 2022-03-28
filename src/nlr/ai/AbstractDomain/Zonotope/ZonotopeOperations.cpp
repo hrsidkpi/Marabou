@@ -97,3 +97,7 @@ AI::Zonotope AI::createBoundingZonotope(std::vector<arma::mat> points, std::vect
 	return AI::Zonotope(resGenerators, resBias);
 
 }
+
+AI::Zonotope AI::joinZonotopes(AI::Zonotope z1, AI::Zonotope z2) {
+	
+}

@@ -1,0 +1,2 @@
+ssh pheonix-gw
+https://wiki.cs.huji.ac.il/wiki/Main_page bava

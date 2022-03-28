@@ -76,7 +76,8 @@ void NetworkLevelReasoner::performAbstractInterpretation() {
             double *weightsArma = new double[nextLayer->getSize() * layer->getSize()];
             for(unsigned x = 0; x < nextLayer->getSize(); x++) {
                 for(unsigned y = 0; y < layer->getSize(); y++) {
-                    weightsArma[x + y * nextLayer->getSize()] = weights[y + x * layer->getSize()];
+                    //weightsArma[x + y * nextLayer->getSize()] = weights[y + x * layer->getSize()];
+                    weightsArma[x + y * nextLayer->getSize()] = weights[x + y * nextLayer->getSize()];
                 }
             }
 

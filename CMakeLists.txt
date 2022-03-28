@@ -16,7 +16,7 @@ option(ENABLE_GUROBI "Enable use the Gurobi optimizer" OFF)
 option(ENABLE_OPENBLAS "Do symbolic bound tighting using blas" ON) # Not available on windows
 option(CODE_COVERAGE "add code coverage" OFF)  # Available only in debug mode
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 set(DEFAULT_PYTHON_VERSION "3" CACHE STRING "Default Python version 2/3")
 set(PYTHON_VERSIONS_SUPPORTED 2 3)
@@ -300,6 +300,7 @@ find_package(LAPACK)
 set(LAPACKBLAS_LIB ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 target_link_libraries(${MARABOU_LIB} ${LAPACKBLAS_LIB})
 
+                    #weightsArma[x + y * nextLayer->getSize()] = weights[y + x * layer->getSize()];
 # Armadillo
 set(ARNADILLO_DIR "${TOOLS_DIR}/armadillo-10.7.5")
 add_library(ARMADILLO_LIB SHARED IMPORTED)

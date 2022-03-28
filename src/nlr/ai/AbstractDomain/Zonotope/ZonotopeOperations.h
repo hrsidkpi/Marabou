@@ -8,4 +8,6 @@ namespace AI {
 
 	Zonotope createBoundingZonotope(std::vector<arma::mat> points, std::vector<arma::mat> generators);
 
+	Zonotope joinZonotopes(Zonotope z1, Zonotope z2);
+
 }
