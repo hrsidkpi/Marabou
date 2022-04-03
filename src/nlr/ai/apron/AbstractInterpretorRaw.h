@@ -7,8 +7,8 @@
 #include "AbstractValueRaw.h"
 #include "Layer.h"
 #include "AbstractEnvironmentRaw.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/apron/AbstractDomainEnum.h"
-#include "/home/yarden/Desktop/research/Marabou/src/nlr/ai/apron/polyhedron/Polyhedron.h"
+#include "AbstractDomainEnum.h"
+#include "polyhedron/Polyhedron.h"
 //#include "armadillo.h"
 
 //using namespace arma;
