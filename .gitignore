@@ -12,7 +12,6 @@ TAGS
 /src/basis_factorization/tests/cxxtest_Test_PermutationMatrix.cxx
 *.DS_Store
 *-checkpoint.ipynb
-*.so
 *.pyc
 /src/engine/marabou.elf
 tools/boost_1_68_0
