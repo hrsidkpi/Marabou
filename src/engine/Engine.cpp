@@ -1127,15 +1127,13 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
             //_networkLevelReasoner->dumpBounds();
             std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;   
             _networkLevelReasoner->obtainCurrentBounds();         
-            _networkLevelReasoner->startAbstractInterpretation(AI::ZONOTOPE_DOMAIN, AI::NONE_DOMAIN);
+            _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
+            //_networkLevelReasoner->startAbstractInterpretation(AI::AbstractDomainType::ZONOTOPE_DOMAIN, AI::AbstractDomainType::NONE_DOMAIN);
             std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
             _networkLevelReasoner->performAbstractInterpretation();
             //std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->dumpBounds();
+            //_networkLevelReasoner->dumpBounds();
             std::cout << "done with first abstract interpretation";
-            
-            
-
         }
 
         if ( Options::get()->getBool( Options::DUMP_BOUNDS ) )
@@ -1882,14 +1880,14 @@ void Engine::performAbstractInterpretationTightening()
     static unsigned _requested_ai_step_count = 0;
 
     _requested_ai_step_count++;
-    if(_requested_ai_step_count % 100 != 0) return;
+    if(_requested_ai_step_count % 1 != 0) return;
 
     std::cout << "performing AI step " << _ai_step_count << std::endl;
     _ai_step_count++;
 
     _networkLevelReasoner->obtainCurrentBounds();
     
-    _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 8, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
+    _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
     _networkLevelReasoner->performAbstractInterpretation();
     
     List<Tightening> tightenings;

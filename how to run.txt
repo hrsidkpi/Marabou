@@ -1,1 +1,11 @@
 ssh -l hrsidkpi -J hrsidkpi@bava.cs.huji.ac.il phoenix-gw
+
+to add an cmd arg:
+
+/home/yarden/Desktop/research/Marabou/src/configuration/Options.h to add an Options
+and add default value in cpp
+
+to get the result:
+Options::get()->getInt(Options::NAME);
+
+and add to OptionParser.cpp

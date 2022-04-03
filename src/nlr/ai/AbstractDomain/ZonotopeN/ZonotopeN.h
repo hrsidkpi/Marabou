@@ -12,9 +12,7 @@ namespace AI {
 	class ZonotopeN : public AbstractDomain {
 	public:
 
-		~ZonotopeN() {
-			for(unsigned i = 0; i < )
-		};
+		~ZonotopeN(){}
 
 		ZonotopeN(Zonotope initialZonotope, unsigned N) { zonotopes = std::vector<Zonotope>(); zonotopes.push_back(initialZonotope); this->N = N; }
 		

@@ -20,6 +20,7 @@ void AI::Zonotope::applyReLuOnDim(unsigned dim)
 		for (unsigned g = 0; g < generators.size(); ++g) {
 			generators[g][dim] = 0;
 		}
+		return;
 	}
 
 	double lambda = upper / (upper - lower);
