@@ -6,7 +6,7 @@ cd build
 echo "building..."
 cmake --build . -j 4
 
-cd .../run_batches
+cd ../run_batches
 ls
 echo "running all..."
 sbatch --mem=400m -c4 --time=6:0:0 n_1_1_p_1.sh
