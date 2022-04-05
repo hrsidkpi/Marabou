@@ -1125,14 +1125,18 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
             
             //std::cout << "\n\n\n\n\nBounds before AI:\n====================================\n\n" << std::endl;            
             //_networkLevelReasoner->dumpBounds();
+           
             std::cout << "\n\n\n\n\nStarting AI:\n====================================\n\n" << std::endl;   
-            _networkLevelReasoner->obtainCurrentBounds();         
-            _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
+            //_networkLevelReasoner->obtainCurrentBounds();         
+            //_networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
             //_networkLevelReasoner->startAbstractInterpretation(AI::AbstractDomainType::ZONOTOPE_DOMAIN, AI::AbstractDomainType::NONE_DOMAIN);
+           
             std::cout << "\n\n\n\n\nDoing AI:\n====================================\n\n" << std::endl;            
-            _networkLevelReasoner->performAbstractInterpretation();
+            //_networkLevelReasoner->performAbstractInterpretation();
+
             //std::cout << "\n\n\n\n\nBounds after AI:\n====================================\n\n" << std::endl;            
             //_networkLevelReasoner->dumpBounds();
+
             std::cout << "done with first abstract interpretation";
         }
 
@@ -1876,6 +1880,7 @@ void Engine::performSimulation()
 
 void Engine::performAbstractInterpretationTightening() 
 {
+    return;
     static unsigned _ai_step_count = 0; 
     static unsigned _requested_ai_step_count = 0;
 
