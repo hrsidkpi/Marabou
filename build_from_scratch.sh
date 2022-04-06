@@ -11,6 +11,7 @@ if [ "$CONT" = "y" ]; then
     ssh git@github.com
     cmake .. -DFETCHCONTENT_QUIET=OFF 
     echo "building..."
+    module load gurobi
     cmake --build . -j 4
 else
     echo "booo";
