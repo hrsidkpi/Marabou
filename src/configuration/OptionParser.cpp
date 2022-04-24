@@ -72,7 +72,7 @@ void OptionParser::initialize()
         ( "num-workers",
           boost::program_options::value<int>( &((*_intOptions)[Options::NUM_WORKERS]) ),
           "(SnC) Number of workers" )
-        ( "output-layer-index"
+        ( "output-layer-index",
           boost::program_options::value<int>( &((*_intOptions)[Options::OUTPUT_LAYER_INDEX]) ),
           "Output Layer Index" )
         ( "split-strategy",
