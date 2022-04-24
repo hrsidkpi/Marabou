@@ -7,11 +7,8 @@ if [ "$CONT" = "y" ]; then
     rm CMakeCache.txt
     mkdir build
     cd build 
-    ssh-add 
-    ssh git@github.com
     cmake .. -DFETCHCONTENT_QUIET=OFF 
     echo "building..."
-    module load gurobi
     cmake --build . -j 4
 else
     echo "booo";
