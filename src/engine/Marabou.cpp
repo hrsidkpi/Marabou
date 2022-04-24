@@ -109,6 +109,7 @@ void Marabou::prepareInputQuery()
         printf( "\n" );
     }
 
+
     String queryDumpFilePath = Options::get()->getString( Options::QUERY_DUMP_FILE );
     if ( queryDumpFilePath.length() > 0 )
     {
@@ -116,6 +117,7 @@ void Marabou::prepareInputQuery()
         printf( "\nInput query successfully dumped to file\n" );
         exit( 0 );
     }
+
 }
 
 void Marabou::solveQuery()
@@ -132,6 +134,25 @@ void Marabou::displayResults( unsigned long long microSecondsElapsed ) const
 {
     Engine::ExitCode result = _engine.getExitCode();
     String resultString;
+
+    String boundsOutputPath = Options::get()->getString( Options::OUTPUT_BOUNDS_FILE_PATH );
+    if ( boundsOutputPath.length() == 0 )
+    {
+        std::err << " bounds output path not specified" << std::endl;
+        exit(-1);
+    }
+    std::ofstream boundsOutput;
+    boundsOutput.open(boundsOutputPath);
+
+    NLR::NetworkLevelReasoner *nlr = _inputQuery._networkLevelReasoner;
+    unsigned outputLayerIndex = -1;
+    //outputLayerIndex = Options::get()->getInt(Options::OUTPUT_LAYER_INDEX);
+    if(outputLayerIndex == -1)
+        outputLayerIndex = lastLayer->getSize()
+    NLR::Layer *lastLayer = nlr->getLayer(nlr->getNumberOfLayers() - 1);
+    for(unsigned i = 0; i < lastLayer->getSize(); i++) {
+        boundsOutput << lastLayer->getLb() << "," << lastLayer->getUb();
+    }
 
     if ( result == Engine::UNSAT )
     {
@@ -153,7 +174,7 @@ void Marabou::displayResults( unsigned long long microSecondsElapsed ) const
             for ( unsigned i = 0; i < _inputQuery.getNumInputVariables(); ++i )
                 input[i] = _inputQuery.getSolutionValue( _inputQuery.inputVariableByIndex( i ) );
 
-            NLR::NetworkLevelReasoner *nlr = _inputQuery._networkLevelReasoner;
+            //NLR::NetworkLevelReasoner *nlr = _inputQuery._networkLevelReasoner;
             NLR::Layer *lastLayer = nlr->getLayer( nlr->getNumberOfLayers() - 1 );
             double *output = new double[lastLayer->getSize()];
 
@@ -215,6 +236,8 @@ void Marabou::displayResults( unsigned long long microSecondsElapsed ) const
 
         summaryFile.write( "\n" );
     }
+
+    boundsOutput.close();
 }
 
 //

@@ -62,6 +62,8 @@ public:
         NUM_ONLINE_DIVIDES,
         INITIAL_TIMEOUT,
 
+        OUTPUT_LAYER_INDEX,
+
         // Engine verbosity
         VERBOSITY,
 
@@ -89,6 +91,7 @@ public:
         INPUT_FILE_PATH = 0,
         PROPERTY_FILE_PATH,
         INPUT_QUERY_FILE_PATH,
+        OUTPUT_BOUNDS_FILE_PATH,
         SUMMARY_FILE,
         SPLITTING_STRATEGY,
         SNC_SPLITTING_STRATEGY,

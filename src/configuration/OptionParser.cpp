@@ -60,6 +60,9 @@ void OptionParser::initialize()
         ( "input-query",
           boost::program_options::value<std::string>( &((*_stringOptions)[Options::INPUT_QUERY_FILE_PATH]) ),
           "Input Query file" )
+        ( "bounds-o-file",
+          boost::program_options::value<std::string>( &((*_stringOptions)[Options::OUTPUT_BOUNDS_FILE_PATH]) ),
+          "Output Bounds File")
         ( "summary-file",
           boost::program_options::value<std::string>( &((*_stringOptions)[Options::SUMMARY_FILE]) ),
           "Summary file" )
@@ -69,6 +72,9 @@ void OptionParser::initialize()
         ( "num-workers",
           boost::program_options::value<int>( &((*_intOptions)[Options::NUM_WORKERS]) ),
           "(SnC) Number of workers" )
+        ( "output-layer-index"
+          boost::program_options::value<int>( &((*_intOptions)[Options::OUTPUT_LAYER_INDEX]) ),
+          "Output Layer Index" )
         ( "split-strategy",
           boost::program_options::value<std::string>( &((*_stringOptions)[Options::SNC_SPLITTING_STRATEGY]) ),
           "(SnC) The splitting strategy" )
