@@ -5,7 +5,7 @@ def run_marabou_ai(net_name_suffix: str, query_name_suffix: str, ai_interval: in
     net_name = f"../resources/nnet/acasxu/ACASXU_experimental_v2a_{net_name_suffix}.nnet"
     property_name = f"../resources/properties/acas_property_{query_name_suffix}.txt"
 
-    os.system('cd ..')
+    os.system('cd ../')
     os.system('ls')
     os.system('mkdir -p build')
     os.system('cd build')
