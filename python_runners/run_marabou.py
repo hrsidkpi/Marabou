@@ -24,3 +24,6 @@ def run_marabou_no_ai(net_name_suffix: str, query_name_suffix: str):
 def run_basic_sat_test():
     run_marabou_ai("1_1", "always_sat", 0, "out_1_1_always_sat", 12)
     print("done.")
+
+
+run_basic_sat_test()
