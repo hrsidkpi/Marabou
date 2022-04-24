@@ -6,6 +6,7 @@ def run_marabou_ai(net_name_suffix: str, query_name_suffix: str, ai_interval: in
     property_name = f"../resources/properties/acas_property_{query_name_suffix}.txt"
 
     os.system('cd ..')
+    os.system('ls')
     os.system('mkdir -p build')
     os.system('cd build')
     os.system('module load gurobi')
