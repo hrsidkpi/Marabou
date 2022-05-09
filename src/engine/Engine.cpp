@@ -1116,7 +1116,7 @@ bool Engine::processInputQuery( InputQuery &inputQuery, bool preprocess )
         {
 
 
-            //performSymbolicBoundTightening();
+            performSymbolicBoundTightening();
             performSimulation();
             performMILPSolverBoundedTightening();
 
