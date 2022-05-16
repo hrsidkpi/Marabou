@@ -1,0 +1,12 @@
+#!/bin/bash
+cd ../build
+
+net_name_prefix="../resources/nnet/acasxu/ACASXU_experimental_v2a_"
+net_name_suffix=".nnet"
+net_name = $net_name_prefix$1$2$net_name_suffix
+
+prop_name_prefix="../resources/properties/acas_property_3"
+prop_name_suffix=".txt"
+prop_name = $prop_name_prefix$3$prop_name_suffix
+
+./Marabou $net_name $prop_name
