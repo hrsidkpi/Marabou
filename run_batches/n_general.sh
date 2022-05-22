@@ -3,7 +3,7 @@ cd ../build
 
 net_name_prefix="../resources/nnet/acasxu/ACASXU_experimental_v2a_"
 net_name_suffix=".nnet"
-net_name=$net_name_prefix$1$2$net_name_suffix
+net_name="${net_name_prefix}${1}_${2}${net_name_suffix}"
 
 echo "network: "
 echo $net_name
