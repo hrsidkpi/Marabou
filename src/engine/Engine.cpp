@@ -1880,6 +1880,8 @@ void Engine::performSimulation()
 
 void Engine::performAbstractInterpretationTightening() 
 {
+    return;
+    
     static unsigned _ai_step_count = 0; 
     static unsigned _requested_ai_step_count = 0;
 
