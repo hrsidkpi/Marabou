@@ -205,7 +205,7 @@ bool Engine::solve( unsigned timeoutInSeconds )
 
             if ( splitJustPerformed )
             {
-                performAbstractInterpretationTightening();
+                performSymbolicBoundTightening();
                 //do
                 //{
                 //    performSymbolicBoundTightening();
