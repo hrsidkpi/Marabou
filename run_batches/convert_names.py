@@ -1,6 +1,6 @@
 import os
 
-files = os.listdir()
+files = os.listdir('.')
 files.sort()
 
 last_c = "c1.out"
@@ -16,7 +16,7 @@ done = False
 while not done:
     done = True
 
-    files = os.listdir()
+    files = os.listdir('.')
     files.sort()
     for f in files:
         if f.startswith('slurm'):
