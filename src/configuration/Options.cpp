@@ -169,6 +169,8 @@ SymbolicBoundTighteningType Options::getSymbolicBoundTighteningType() const
         return SymbolicBoundTighteningType::DEEP_POLY;
     else if ( strategyString == "none" )
         return SymbolicBoundTighteningType::NONE;
+    else if ( strategyString == "zonotope")
+        return SymbolicBoundTighteningType::ZONPTOPE_AI;
     else
         return SymbolicBoundTighteningType::DEEP_POLY;
 }
