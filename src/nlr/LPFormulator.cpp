@@ -123,6 +123,8 @@ void LPFormulator::optimizeBoundsWithIncrementalLpRelaxation( const Map<unsigned
         Layer *layer = layers[i];
         addLayerToModel( gurobi, layer );
 
+        std::cout << "==============================\n\n\n\nUSING GUROBI!!!\n\n\n\n========================" << std::endl;
+
         for ( unsigned j = 0; j < layer->getSize(); ++j )
         {
             if ( layer->neuronEliminated( j ) )

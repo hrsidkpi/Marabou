@@ -1,5 +1,11 @@
 ssh -l hrsidkpi -J hrsidkpi@bava.cs.huji.ac.il phoenix-gw
- sbatch --mem=400m -c4 --time=6:0:0 build_and_run.sh
+ 
+ build and run:
+ sbatch --mem=2g -c4 --time=6:0:0 build_and_run.sh
+ 
+ build from scratch:
+  sbatch --mem=2g -c4 --time=6:0:0 unsafe_build_from_scratch.sh
+
  tail -f NUM.out
 
 to add an cmd arg:
