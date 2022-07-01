@@ -106,7 +106,7 @@ bool Engine::solve( unsigned timeoutInSeconds )
         std::cout << "++++++++++++++++++++++++ " << " USING SYMBOLIC " << " ++++++++++++++++++++++++++" << std::endl;
     else if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::DEEP_POLY )
         std::cout << "++++++++++++++++++++++++ " << " USING DEEP POLY " << " ++++++++++++++++++++++++++" << std::endl;
-    else if(_symbolicBoundTighteningType == SYMBOLIC_BOUND_TIGHTENING_TYPE::ZONPTOPE_AI) 
+    else if(_symbolicBoundTighteningType == SymbolicBoundTighteningType::ZONPTOPE_AI) 
         std::cout << "++++++++++++++++++++++++ " << " USING ZONOTOPE " << " ++++++++++++++++++++++++++" << std::endl;
        
 
@@ -1905,7 +1905,7 @@ void Engine::performSymbolicBoundTightening()
         _networkLevelReasoner->symbolicBoundPropagation();
     else if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::DEEP_POLY )
         _networkLevelReasoner->deepPolyPropagation();
-    else if(_symbolicBoundTighteningType == SYMBOLIC_BOUND_TIGHTENING_TYPE::ZONPTOPE_AI) {
+    else if(_symbolicBoundTighteningType == SymbolicBoundTighteningType::ZONPTOPE_AI) {
         _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
         _networkLevelReasoner->performAbstractInterpretation();
     }
