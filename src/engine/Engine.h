@@ -484,12 +484,6 @@ private:
 
 
     /*
-      Perform a round of abstract interpretation.
-    */
-    void performAbstractInterpretationTightening();
-
-
-    /*
       Perform a simulation which calculates concrete values of each layer with
       randomly generated input values.
     */

@@ -24,6 +24,7 @@ enum class SymbolicBoundTighteningType
      SYMBOLIC_BOUND_TIGHTENING = 0,
      DEEP_POLY = 1,
      NONE = 2,
+     ZONPTOPE_AI = 3,
 };
 
 #endif // __SymbolicBoundTighteningType_h__

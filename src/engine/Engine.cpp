@@ -205,12 +205,12 @@ bool Engine::solve( unsigned timeoutInSeconds )
 
             if ( splitJustPerformed )
             {
-                performAbstractInterpretationTightening();
                 //do
                 //{
                 //    performSymbolicBoundTightening();
                 //}
                 //while ( applyAllValidConstraintCaseSplits() );
+                performSymbolicBoundTightening();
                 splitJustPerformed = false;
             }
 
@@ -1876,57 +1876,6 @@ void Engine::performSimulation()
     _networkLevelReasoner->simulate( &simulations );
 }
 
-
-
-void Engine::performAbstractInterpretationTightening() 
-{
-    return;
-    static unsigned _ai_step_count = 0; 
-    static unsigned _requested_ai_step_count = 0;
-
-    _requested_ai_step_count++;
-    if(_requested_ai_step_count % 1 != 0) return;
-
-    std::cout << "performing AI step " << _ai_step_count << std::endl;
-    _ai_step_count++;
-
-    _networkLevelReasoner->obtainCurrentBounds();
-    
-    _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
-    _networkLevelReasoner->performAbstractInterpretation();
-    
-    List<Tightening> tightenings;
-    _networkLevelReasoner->getConstraintTightenings( tightenings );
-
-    unsigned numTightenedBounds = 0;
-    
-    for ( const auto &tightening : tightenings )
-    {
-
-        if ( tightening._type == Tightening::LB &&
-             FloatUtils::gt( tightening._value, _tableau->getLowerBound( tightening._variable ) ) )
-        {
-            _tableau->tightenLowerBound( tightening._variable, tightening._value );
-            ++numTightenedBounds;
-        }
-
-        if ( tightening._type == Tightening::UB &&
-             FloatUtils::lt( tightening._value, _tableau->getUpperBound( tightening._variable ) ) )
-        {
-            _tableau->tightenUpperBound( tightening._variable, tightening._value );
-            ++numTightenedBounds;
-        }
-    }
-    if(_ai_step_count % 300 == 0) {
-        _networkLevelReasoner->dumpBounds();
-    }
-    _statistics.incNumTighteningsFromSymbolicBoundTightening( numTightenedBounds );
-    //_networkLevelReasoner->clearAbstractInterpretation();
-
-}
-
-
-
 void Engine::performSymbolicBoundTightening()
 {
     return;
@@ -1943,12 +1892,15 @@ void Engine::performSymbolicBoundTightening()
     _networkLevelReasoner->obtainCurrentBounds();
 
     // Step 2: perform SBT
-    if ( _symbolicBoundTighteningType ==
-         SymbolicBoundTighteningType::SYMBOLIC_BOUND_TIGHTENING )
+    if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::SYMBOLIC_BOUND_TIGHTENING )
         _networkLevelReasoner->symbolicBoundPropagation();
-    else if ( _symbolicBoundTighteningType ==
-         SymbolicBoundTighteningType::DEEP_POLY )
+    else if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::DEEP_POLY )
         _networkLevelReasoner->deepPolyPropagation();
+    else if(_symbolicBoundTighteningType == SYMBOLIC_BOUND_TIGHTENING_TYPE::ZONPTOPE_AI) {
+        _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
+        _networkLevelReasoner->performAbstractInterpretation();
+    }
+        
 
     // Step 3: Extract the bounds
     List<Tightening> tightenings;

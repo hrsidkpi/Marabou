@@ -165,6 +165,8 @@ SymbolicBoundTighteningType Options::getSymbolicBoundTighteningType() const
         String( _stringOptions.get( Options::SYMBOLIC_BOUND_TIGHTENING_TYPE ) );
     if ( strategyString == "sbt" )
         return SymbolicBoundTighteningType::SYMBOLIC_BOUND_TIGHTENING;
+    if (strategyString == "zonotope")
+        return SymbolicBoundTighteningType::ZONPTOPE_AI;
     else if ( strategyString == "deeppoly" )
         return SymbolicBoundTighteningType::DEEP_POLY;
     else if ( strategyString == "none" )
