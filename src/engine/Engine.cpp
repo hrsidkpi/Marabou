@@ -101,6 +101,16 @@ void Engine::adjustWorkMemorySize()
 
 bool Engine::solve( unsigned timeoutInSeconds )
 {
+
+    if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::SYMBOLIC_BOUND_TIGHTENING )
+        std::cout << "++++++++++++++++++++++++ " << " USING SYMBOLIC " << " ++++++++++++++++++++++++++" << std::endl;
+    else if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::DEEP_POLY )
+        std::cout << "++++++++++++++++++++++++ " << " USING DEEP POLY " << " ++++++++++++++++++++++++++" << std::endl;
+    else if(_symbolicBoundTighteningType == SYMBOLIC_BOUND_TIGHTENING_TYPE::ZONPTOPE_AI) 
+        std::cout << "++++++++++++++++++++++++ " << " USING ZONOTOPE " << " ++++++++++++++++++++++++++" << std::endl;
+       
+
+
     SignalHandler::getInstance()->initialize();
     SignalHandler::getInstance()->registerClient( this );
 
@@ -1878,7 +1888,6 @@ void Engine::performSimulation()
 
 void Engine::performSymbolicBoundTightening()
 {
-    return;
 
     if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::NONE ||
          ( !_networkLevelReasoner ) )
