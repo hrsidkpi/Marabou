@@ -24,7 +24,7 @@ bool AI::Halfspace::applyAffineTransformation(arma::mat transformation_linear_ma
 
     arma::mat new_weights(1, new_dim, arma::fill::zeros);
 
-    bool has_sol = arma::solve(new_weights, transformation_linear_mat.t(), weights.t());
+    bool has_sol = arma::solve(new_we ights, transformation_linear_mat.t(), weights.t());
     if (has_sol && arma::dot(new_weights, new_weights) != 0) {
         double* new_weights_ptr = new_weights.memptr();
 
