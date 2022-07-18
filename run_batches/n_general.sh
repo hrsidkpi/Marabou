@@ -16,6 +16,9 @@ summary_path_prefix="res_zono_18_07_2022/res_"
 summary_path_suffix=".txt"
 summary_path="${summary_path_prefix}${1}_${2}_${3}${summary_path_suffix}"
 
+touch summary_path
+echo "not finished yet" > summary_path
+
 echo "property: "
 echo $prop_name
 
