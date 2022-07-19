@@ -1887,7 +1887,6 @@ void Engine::performSimulation()
 
 void Engine::performSymbolicBoundTightening()
 {
-    return;
 
     if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::NONE ||
          ( !_networkLevelReasoner ) )
