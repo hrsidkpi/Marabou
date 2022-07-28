@@ -1905,7 +1905,7 @@ void Engine::performSymbolicBoundTightening()
     else if ( _symbolicBoundTighteningType == SymbolicBoundTighteningType::DEEP_POLY )
         _networkLevelReasoner->deepPolyPropagation();
     else if(_symbolicBoundTighteningType == SymbolicBoundTighteningType::ZONPTOPE_AI) {
-        _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 128, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
+        _networkLevelReasoner->startAbstractInterpretation(AI::ComplexAbstractDomainType::ZONOTOPE_N_DOMAIN, 64, AI::ComplexAbstractDomainType::NONE_N_DOMAIN, 0);
         _networkLevelReasoner->performAbstractInterpretation();
     }
 
