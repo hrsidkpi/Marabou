@@ -1,13 +1,14 @@
 #!/bin/bash
 
-mkdir -p build
-cd build
+mkdir -p build256
+cd build256
+cmake .. -DFETCHCONTENT_QUIET=OFF 
 
 echo "building..."
-cmake --build . -j 4
+cmake --build2 . -j 4
 
 cd ../run_batches
-ls
+
 echo "running all..."
 # sbatch --mem=400m -c4 --time=10:0:0 n_1_1_p_1.sh
 # sbatch --mem=400m -c4 --time=10:0:0 n_1_1_p_2.sh
