@@ -26,4 +26,4 @@ echo $prop_name
 echo "summary path: "
 echo $summary_path
 
-./Marabou $net_name $prop_name --summary-file=$summary_path
+./Marabou $net_name $prop_name --summary-file=$summary_path --tightening-strategy sbt
