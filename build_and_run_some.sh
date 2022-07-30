@@ -5,7 +5,7 @@ cd build256
 cmake .. -DFETCHCONTENT_QUIET=OFF 
 
 echo "building..."
-cmake --build2 . -j 4
+cmake --build . -j 4
 
 cd ../run_batches
 
